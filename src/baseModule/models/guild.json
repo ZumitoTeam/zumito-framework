@@ -1,0 +1,23 @@
+{
+    "guild_id": {
+        "type": "string",
+        "index": true,
+        "unique": true
+    },
+    "lang": {
+        "type": "string",
+        "default": "en"
+    },
+    "prefix": {
+        "type": "string",
+        "default": "z-"
+    },
+    "public": {
+        "type": "boolean",
+        "default": false
+    },
+    "deleteCommands": {
+        "type": "boolean",
+        "default": false
+    }
+}

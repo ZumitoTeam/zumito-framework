@@ -1,0 +1,17 @@
+import { Command, CommandParameters } from "zumito-framework";
+
+export class {{capitalize command}} extends Command {
+
+    execute({ message, interaction, args, client, framework, guildSettings }: CommandParameters): void {
+        (message || interaction!).reply({
+            content: "Message content",
+        });
+    }
+
+    async selectMenu({ path, interaction, client, framework }: SelectMenuParameters): Promise<void> {
+        await interaction.deferUpdate();
+        await interaction.editReply({ 
+            content: "Select menu content",
+        });
+    }
+}
