@@ -1,112 +1,239 @@
-import { Channel, GuildMember, Message, PermissionsBitField, SlashCommandBuilder, TextChannel } from "discord.js";
-import { CommandArguments } from "./types/CommandArguments.js";
-import { Command } from "./types/Command.js";
-import { FrameworkSettings } from "./types/FrameworkSettings.js";
-import { Module } from "./types/Module.js";
-import { ApiResponse } from './definitions/ApiResponse.js';
-import { FrameworkEvent } from "./types/FrameworkEvent.js";
-import { baseModule } from "./baseModule/index.js";
-import { TranslationManager } from "./TranslationManager.js";
-
-import express from 'express';
 import * as fs from 'fs';
-import path from 'path';
-import { Collection, Client } from "discord.js";
-// import better-logging
-import { betterLogging } from "better-logging";
-betterLogging(console);
+import * as url from 'url';
+
+import {
+    Client,
+    GuildMember,
+    PermissionsBitField,
+    SlashCommandBuilder,
+    TextChannel,
+} from 'discord.js';
+
+import { ApiResponse } from './definitions/ApiResponse.js';
+import { Command } from './types/Command.js';
+import { CommandArgDefinition } from './types/CommandArgDefinition.js';
+import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
+import { CommandType } from './types/CommandType.js';
+import { DatabaseModel } from './types/DatabaseModel.js';
+import { EventEmitter } from 'events';
+import { FrameworkEvent } from './types/FrameworkEvent.js';
+import { FrameworkSettings } from './types/FrameworkSettings.js';
+import { Module } from './types/Module.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import mongoose from "mongoose";
+import { StatusManager } from './managers/StatusManager.js';
+import { TranslationManager } from './TranslationManager.js';
+import { baseModule } from './baseModule/index.js';
+import { betterLogging } from 'better-logging';
+import canario from 'canario';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import express from 'express';
 import http from 'http';
-import * as url from 'url';
-import { CommandType } from "./types/CommandType.js";
-import { CommandArgDefinition } from "./types/CommandArgDefinition.js";
-import { CommandChoiceDefinition } from "./types/CommandChoiceDefinition.js";
+import path from 'path';
+import { EventManager } from './managers/EventManager.js';
+
+// import better-logging
+
+betterLogging(console);
 
 /**
  * @class ZumitoFramework
- * @classdesc The main class of the framework.
- * 
- * @property {FrameworkSettings} settings - The settings of the framework.
- * @property {Client} client - The client client instance.
- * @property {Collection<string, Module>} modules - The modules loaded in the framework.
- * @property {Collection<string, Command>} commands - The commands loaded in the framework.
- */  
+ * @description The main class of the framework.
+ * @example
+ *  new ZumitoFramework({
+ *     discordClientOptions: {
+ *          intents: 3276799,
+ *          token: 'XXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+ *          clientId: 755XXXXXXXXXX98,
+ *      },
+ *      defaultPrefix: process.env.BOTPREFIX || "z-",
+ *      mongoQueryString: mongodb://XXXXXX,
+ *      logLevel: parseInt(process.env.LOGLEVEL || "3"),
+ * });
+ */
 export class ZumitoFramework {
-
-    client: any;
+    
+    /**
+     * The discord client instance.
+     * @type {Client}
+     * @private
+     * @see {@link https://discord.js.org/#/docs/main/stable/class/Client}
+     */
+    client: Client;
+    
+    /**
+     * The settings for the framework.
+     * @type {FrameworkSettings}
+     * @private
+     */
     settings: FrameworkSettings;
+    
+    /**
+     * The modules loaded in the framework.
+     * @type {Map<string, Module>}
+     * @private
+     */
     modules: Map<string, Module>;
+    
+    /**
+     * The commands loaded in the framework.
+     * @type {Map<string, Command>}
+     * @private
+     * @see {@link Command}
+     */
     commands: Map<string, Command>;
+    
+    /**
+     * The events loaded in the framework.
+     * @type {Map<string, FrameworkEvent>}
+     * @private
+     * @see {@link FrameworkEvent}
+     */
     events: Map<string, FrameworkEvent>;
+    
+    /**
+     * The Translation Manager for the framework.
+     * @type {TranslationManager}
+     * @private
+     * @see {@link TranslationManager}
+     */
     translations: TranslationManager;
     routes: any;
-    models: any;
+    
+    /**
+     * The database models loaded in the framework.
+     * @type {Array<DatabaseModel>}
+     * @private
+     */
+    models: Array<DatabaseModel>;
+    
+    /**
+     * The canario database schema instance.
+     * @type {canario.Schema}
+     * @private
+     * @see {@link https://www.npmjs.com/package/canario}
+     */
     database: any;
+    
+    /**
+     * The ExpressJS app instance.
+     * @type {express.Application}
+     * @private
+     * @see {@link https://expressjs.com/en/4x/api.html#app}
+     */
     app: any;
     
+    /**
+     * The Status Manager instance.
+     * @type {StatusManager}
+     * @private
+     * @see {@link StatusManager}
+     */
+    statusManager: StatusManager;
+
+    /**	
+     * Event emitter for the framework.
+     * All events related to the framework are emitted from here.
+     * @type {EventEmitter}
+     * @private
+     * @see {@link https://nodejs.org/api/events.html#events_class_eventemitter}
+     */
+    eventEmitter: EventEmitter = new EventEmitter();
+
+    /**
+     * Event manager for the framework.
+     * All events related to the framework and discord.js are handled here.
+     * @type {EventManager}
+     * @private
+     */
+    eventManager: EventManager;
 
     /**
      * @constructor
-     * @description Creates a new instance of the framework.
-     * @param {FrameworkSettings} settings - The settings of the framework.
-     * @example new ZumitoFramework({
-     *     prefix: '!',
-     *     discordClientOptions: {
-     *        token: 'token',
-     *        clientId: 'clientId',
-     *       intents: 0
-     *    }
-     * });
-     * @public
+     * @param {FrameworkSettings} settings - The settings to use for the framework.
+     * @param {(framework: ZumitoFramework) => void} [callback] - A callback to be called when the framework has finished initializing.
      */
-    constructor(settings: FrameworkSettings, callback?: Function) {
+    constructor(settings: FrameworkSettings, callback?: (framework) => void) {
         this.settings = settings;
         this.modules = new Map();
         this.commands = new Map();
         this.events = new Map();
         this.translations = new TranslationManager();
-        this.models = new Map();
+        this.models = [];
+        this.eventManager = new EventManager();
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
         }
 
-        this.initialize().then(() => {
-            if (callback) callback(this);
-        }).catch(err => {
-            console.error(err, err.message, err.stack, err.name);
-        });
+        this.initialize()
+            .then(() => {
+                if (callback) callback(this);
+            })
+            .catch((err) => {
+                console.error(err, err.message, err.stack, err.name);
+            });
     }
 
-    async initialize() {
-        try {
-            await mongoose.connect(this.settings.mongoQueryString);
-        } catch (err) {
-            console.error("[🗄️🔴] Database connection error:", err.message);
-            process.exit(1);
-        } finally {
-            this.database = mongoose.connection;
-            console.log('[🗄️🟢] Database connection successful');
-        }
-        
-        this.initializeDiscordClient();
+    /**
+     * Initializes the framework.
+     * Connects to the MongoDB database, starts the Discord client, and runs API server.
+     * It also loads the modules from the project's modules folder.
+     * @async
+     * @private
+     * @returns {Promise<void>}
+     */
+    private async initialize() {
+        await this.initializeDatabase();
+        await this.initializeDiscordClient();
         this.startApiServer();
 
+        this.eventManager.addEventEmitter('discord', this.client);
+        this.eventManager.addEventEmitter('framework', this.eventEmitter);
+        
         await this.registerModules();
         await this.refreshSlashCommands();
+        if (this.settings.statusOptions) {
+            this.statusManager = new StatusManager(this, this.settings.statusOptions);
+        }
     }
 
+    private async initializeDatabase() {
+        const folders = ['db', 'db/tingodb'];
+        for (const folder of folders) {
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder);
+            }
+        }
+        this.database = new canario.Schema(
+            this.settings?.database?.type || 'tingodb',
+            this.settings?.database || {}
+        );
+        await new Promise((resolve, reject) => {
+            this.database.on('connected', resolve);
+            this.database.on('error', reject);
+        })
+            .then(() => {
+                console.log('[🗄️🟢] Database connection successful!');
+            })
+            .catch((err) => {
+                console.error('[🗄️🔴] Database connection error:', err.message);
+                process.exit(1);
+            });
+    }
+
+    /**
+     * Initializes and starts the API server using ExpressJS.
+     * Sets up middleware, routes, and error handling for the server.
+     */
     startApiServer() {
         this.app = express();
 
-        let port = process.env.PORT || '80';
+        const port = process.env.PORT || '80';
         this.app.set('port', port);
 
-        var server = http.createServer(this.app);
+        const server = http.createServer(this.app);
         server.listen(port);
         server.on('error', (err) => {
             console.log('[🌐🔴] Error starting API web server: ' + err);
@@ -128,17 +255,24 @@ export class ZumitoFramework {
         //this.app.use("/api/", apiRouter);
 
         // throw 404 if URL not found
-        this.app.all("*", function(req, res) {
-            return ApiResponse.notFoundResponse(res, "Page not found");
+        this.app.all('*', function (req, res) {
+            return ApiResponse.notFoundResponse(res, 'Page not found');
         });
 
         this.app.use(function (err, req, res) {
             if (err.name === 'UnauthorizedError') {
-                return ApiResponse.unauthorizedResponse(res, "Invalid token");
+                return ApiResponse.unauthorizedResponse(res, 'Invalid token');
             }
         });
     }
 
+    /**
+     * Register all modules in the 'modules' folder.
+     * Scans the specified folder for module files and calls the `registerModule` method for each file.
+     *  Also, it loads the baseModule in the framework.
+     * @private
+     * @returns {Promise<void>}
+     */
     private async registerModules() {
         let modulesFolder;
         if (fs.existsSync(`${process.cwd()}/modules`)) {
@@ -149,37 +283,70 @@ export class ZumitoFramework {
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         await this.registerModule(__dirname, 'baseModule', baseModule);
-        let files = fs.readdirSync(modulesFolder);
-        for(let file of files) {
-           await this.registerModule(modulesFolder, file);
+        const files = fs.readdirSync(modulesFolder);
+        for (const file of files) {
+            await this.registerModule(modulesFolder, file);
         }
 
-        this.models.forEach((modelDefinition, modelName) => {
-            const schema = new mongoose.Schema(modelDefinition);
-            this.models.set(modelName, mongoose.model(modelName, schema));
+        // Define models
+        const schemas: any = {};
+        this.models.forEach((model: DatabaseModel) => {
+            if (!schemas[model.name]) {
+                schemas[model.name] = model.getModel(this.database);
+            } else {
+                schemas[model.name] = MergeRecursive(
+                    schemas[model.name],
+                    model.getModel(this.database)
+                );
+            }
+        });
+        Object.keys(schemas).forEach((schemaName: string) => {
+            this.database.define(schemaName, schemas[schemaName]);
+        });
+        this.models.forEach((model: DatabaseModel) => {
+            model.define(
+                this.database.models[model.name],
+                this.database.models
+            );
         });
     }
 
     private async registerModule(modulesFolder, moduleName, module?: any) {
         if (!module) {
-            if (fs.existsSync(path.join(modulesFolder, moduleName, 'index.js'))) {
-                module = await import(path.join(modulesFolder, moduleName, 'index.js'));
+            if (
+                fs.existsSync(path.join(modulesFolder, moduleName, 'index.js'))
+            ) {
+                module = await import(
+                    'file://' + path.join(modulesFolder, moduleName, 'index.js')
+                );
                 module = Object.values(module)[0];
-            } else if (fs.existsSync(path.join(modulesFolder, moduleName, 'index.ts'))) {
-                module = await import(path.join(modulesFolder, moduleName, 'index.ts'));
+            } else if (
+                fs.existsSync(path.join(modulesFolder, moduleName, 'index.ts'))
+            ) {
+                module = await import(
+                    'file://' + path.join(modulesFolder, moduleName, 'index.ts')
+                );
                 module = Object.values(module)[0];
             } else {
                 module = Module;
-            };
+            }
         }
         // Create module instance
-        let moduleInstance: Module
+        let moduleInstance: Module;
         try {
-            moduleInstance = new module(path.join(modulesFolder, moduleName), this);
+            moduleInstance = new module(
+                path.join(modulesFolder, moduleName),
+                this
+            );
             await moduleInstance.initialize();
-            this.modules.set(moduleName || moduleInstance.constructor.name, moduleInstance);
+            this.modules.set(
+                moduleName || moduleInstance.constructor.name,
+                moduleInstance
+            );
         } catch (err) {
-            console.error(`[📦🔴] Error loading module ${moduleName}: ${err.message}`);
+            console.error(
+                `[📦🔴] Error loading module ${moduleName}: ${err.message}`
+            );
             console.error(err.stack);
         }
 
@@ -189,18 +356,17 @@ export class ZumitoFramework {
                 this.commands.set(command.name, command);
             });
         }
-        this.commands = new Map([...this.commands, ...moduleInstance.getCommands()]);
+        this.commands = new Map([
+            ...this.commands,
+            ...moduleInstance.getCommands(),
+        ]);
 
         // Register module events
         this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
 
         // Register models
-        moduleInstance.getModels().forEach((modelDefinition, modelName) => {
-            if (!this.models.has(modelName)) {
-                this.models.set(modelName, modelDefinition);
-            } else {
-                this.models.set(modelName, MergeRecursive(this.models.get(modelName), modelDefinition));
-            }
+        moduleInstance.getModels().forEach((model: DatabaseModel) => {
+            this.models.push(model);
         });
 
         /*
@@ -209,79 +375,161 @@ export class ZumitoFramework {
         this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
 
         */
-
-
     }
 
-    private initializeDiscordClient() {
+    /**
+     * Initializes the Discord client using the Discord.js library.
+     * Logs in to the Discord API using the provided token and logs a message when the client is ready.
+     * @private
+     */
+    private async initializeDiscordClient() {
         this.client = new Client({
-            intents: this.settings.discordClientOptions.intents
+            intents: this.settings.discordClientOptions.intents,
         });
         this.client.login(this.settings.discordClientOptions.token);
-        this.client.on('ready', () => {
-            // Bot emoji
-            console.log('[🤖🟢] Discord client ready');
+
+        await new Promise<void>((resolve) => {
+            this.client.on('ready', () => {
+                // Bot emoji
+                console.log('[🤖🟢] Discord client ready');
+                resolve();
+            });
         });
     }
 
-    public static splitCommandLine( commandLine ) {
-
+    /**
+     * From a command-line string, returns an array of parameters.
+     * @param commandLine
+     * @returns {string[]}
+     * @private
+     * @static
+     * @example
+     * // returns ['a', 'b', 'c']
+     * splitCommandLine('a b c');
+     * @example
+     * // returns ['a', 'b c']
+     * splitCommandLine('a "b c"');
+     */
+    public static splitCommandLine(commandLine) {
         //log( 'commandLine', commandLine ) ;
-    
+
         //  Find a unique marker for the space character.
         //  Start with '<SP>' and repeatedly append '@' if necessary to make it unique.
-        var spaceMarker = '<SP>' ;
-        while( commandLine.indexOf( spaceMarker ) > -1 ) spaceMarker += '@' ;
-    
+        let spaceMarker = '<SP>';
+        while (commandLine.indexOf(spaceMarker) > -1) spaceMarker += '@';
+
         //  Protect double-quoted strings.
         //   o  Find strings of non-double-quotes, wrapped in double-quotes.
         //   o  The final double-quote is optional to allow for an unterminated string.
         //   o  Replace each double-quoted-string with what's inside the qouble-quotes,
         //      after each space character has been replaced with the space-marker above.
         //   o  The outer double-quotes will not be present.
-        var noSpacesInQuotes = commandLine.replace( /"([^"]*)"?/g, ( fullMatch, capture ) => {
-            return capture.replace( / /g, spaceMarker ) ;
-        }) ;
-    
-    
+        const noSpacesInQuotes = commandLine.replace(
+            /"([^"]*)"?/g,
+            (fullMatch, capture) => {
+                return capture.replace(/ /g, spaceMarker);
+            }
+        );
+
         //  Now that it is safe to do so, split the command-line at one-or-more spaces.
-        var mangledParamArray = noSpacesInQuotes.split( / +/ ) ;
-    
-    
+        const mangledParamArray = noSpacesInQuotes.split(/ +/);
+
         //  Create a new array by restoring spaces from any space-markers.
-        var paramArray = mangledParamArray.map( ( mangledParam ) => {
-            return mangledParam.replace( RegExp( spaceMarker, 'g' ), ' ' ) ;
+        const paramArray = mangledParamArray.map((mangledParam) => {
+            return mangledParam.replace(RegExp(spaceMarker, 'g'), ' ');
         });
-    
-    
-        return paramArray ;
+
+        return paramArray;
     }
 
-    async memberHasPermission(member: GuildMember, channel: TextChannel, permission: bigint) {
-        let memberPermission: PermissionsBitField = await channel.permissionsFor(member);
+    /**
+     * Checks if a member has a permission in a channel.
+     * @param member
+     * @param channel
+     * @param permission
+     * @returns {Promise<boolean>}
+     * @public
+     * @example
+     * // returns true if the member has the permission
+     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES);
+     * @example
+     * // returns true if the member has the permission
+     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES | Permissions.FLAGS.MANAGE_CHANNELS);
+     * @example
+     */
+    public async memberHasPermission(
+        member: GuildMember,
+        channel: TextChannel,
+        permission: bigint
+    ) {
+        const memberPermission: PermissionsBitField =
+            await channel.permissionsFor(member);
         return memberPermission.has(permission);
     }
 
-    async getGuildSettings(guildId: string) {
-        const Guild = this.models.get('Guild');
-        let guild = await Guild.findOne({ guild_id: guildId }).exec();
-        if (guild == null) {
-            guild = new Guild({
-                guild_id: guildId,
+    /**
+     * Gets the guild settings from the database.
+     * If the guild is not in the database, it is added.
+     * @param guildId
+     * @returns {Promise<any>}
+     * @public
+     * @async
+     * @example
+     * // returns the guild settings
+     * getGuildSettings('123456789012345678');
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(message.guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(interaction.guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(interaction.guildId);
+     */
+    public async getGuildSettings(guildId: string) {
+        const Guild = this.database.models.Guild;
+        return await new Promise((resolve, reject) => {
+            Guild.findOne({ where: { guild_id: guildId } }, (err, guild) => {
+                if (err) reject(err);
+                if (guild == null) {
+                    guild = new Guild({
+                        guild_id: guildId,
+                    });
+                    guild.save((err) => {
+                        if (err) reject(err);
+                        resolve(guild);
+                    });
+                } else {
+                    resolve(guild);
+                }
             });
-            await guild.save();
-        }
-        return guild;
+        });
     }
 
     async refreshSlashCommands() {
-        const rest = new REST({ version: '10' }).setToken(this.settings.discordClientOptions.token);
-        let commands = Array.from(this.commands.values())
-            .filter((command: Command) => command.type == CommandType.slash || command.type == CommandType.separated || command.type == CommandType.any)
+        const rest = new REST({ version: '10' }).setToken(
+            this.settings.discordClientOptions.token
+        );
+        const commands = Array.from(this.commands.values())
+            .filter(
+                (command: Command) =>
+                    command.type == CommandType.slash ||
+                    command.type == CommandType.separated ||
+                    command.type == CommandType.any
+            )
             .map((command: Command) => {
-                let slashCommand = new SlashCommandBuilder()
+                const slashCommand = new SlashCommandBuilder()
                     .setName(command.name)
-                    .setDescription(this.translations.get('command.' + command.name + '.description', 'en'));
+                    .setDescription(
+                        this.translations.get(
+                            'command.' + command.name + '.description',
+                            'en'
+                        )
+                    );
                 if (command.args) {
                     command.args.forEach((arg: CommandArgDefinition) => {
                         let method;
@@ -300,21 +548,33 @@ export class ZumitoFramework {
                                 method = 'addRoleOption';
                                 break;
                             default:
-                                throw new Error('Invalid argument type ' + arg.type);
+                                throw new Error(
+                                    'Invalid argument type ' + arg.type
+                                );
                         }
                         slashCommand[method]((option) => {
                             option.setName(arg.name);
-                            option.setDescription(this.translations.get('command.' + command.name + '.args.' + arg.name + '.description', 'en'));
+                            option.setDescription(
+                                this.translations.get(
+                                    'command.' +
+                                        command.name +
+                                        '.args.' +
+                                        arg.name +
+                                        '.description',
+                                    'en'
+                                )
+                            );
                             option.setRequired(!arg.optional);
                             if (arg.choices) {
                                 // if arg.choices is function, call it
                                 if (typeof arg.choices == 'function') {
-                                    arg.choices = arg.choices() as CommandChoiceDefinition[];
+                                    arg.choices =
+                                        arg.choices() as CommandChoiceDefinition[];
                                 }
                                 arg.choices.forEach((choice) => {
                                     option.addChoices({
                                         name: choice.name,
-                                        value: choice.value
+                                        value: choice.value,
                                     });
                                 });
                             }
@@ -325,32 +585,31 @@ export class ZumitoFramework {
                 return slashCommand.toJSON();
             });
         const data: any = await rest.put(
-            Routes.applicationCommands(this.settings.discordClientOptions.clientId),
-            { body: commands },
+            Routes.applicationCommands(
+                this.settings.discordClientOptions.clientId
+            ),
+            { body: commands }
         );
-        console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+        console.debug(
+            `Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`
+        );
     }
 }
 
 function MergeRecursive(obj1, obj2) {
-
-    for (var p in obj2) {
-      try {
-        // Property in destination object set; update its value.
-        if ( obj2[p].constructor==Object ) {
-          obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-  
-        } else {
-          obj1[p] = obj2[p];
-  
+    for (const p in obj2) {
+        try {
+            // Property in destination object set; update its value.
+            if (obj2[p].constructor == Object) {
+                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+            } else {
+                obj1[p] = obj2[p];
+            }
+        } catch (e) {
+            // Property in destination object not set; create it and set its value.
+            obj1[p] = obj2[p];
         }
-  
-      } catch(e) {
-        // Property in destination object not set; create it and set its value.
-        obj1[p] = obj2[p];
-  
-      }
     }
-  
+
     return obj1;
 }

@@ -1,5 +1,6 @@
-import { Client, CommandInteraction, Message } from "discord.js";
-import { ZumitoFramework } from "../ZumitoFramework.js";
+import { Client, CommandInteraction, Message } from 'discord.js';
+
+import { ZumitoFramework } from '../ZumitoFramework.js';
 
 /**
  * @class CommandParameters
@@ -10,11 +11,11 @@ import { ZumitoFramework } from "../ZumitoFramework.js";
  * @property {args} args - The arguments passed to the command.
  */
 export interface CommandParameters {
-
     message?: Message;
     interaction?: CommandInteraction;
-    args: Map<String, any>;
+    args: Map<string, any>;
     client: Client;
     framework: ZumitoFramework;
     guildSettings?: any;
+    trans: (key: string, params?: any) => string;
 }

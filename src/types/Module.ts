@@ -1,25 +1,26 @@
-import { TranslationManager } from "../TranslationManager.js";
-import { ZumitoFramework } from "../ZumitoFramework.js";
-import { Command } from "./Command.js";
-import { EventParameters } from "./EventParameters.js";
-import { FrameworkEvent } from "./FrameworkEvent.js";
-import { Translation } from "./Translation.js";
-import * as chokidar from 'chokidar'
+import { ZumitoFramework } from '../ZumitoFramework.js';
+import { Command } from './Command.js';
+import { EventParameters } from './EventParameters.js';
+import { FrameworkEvent } from './FrameworkEvent.js';
+import * as chokidar from 'chokidar';
 import chalk from 'chalk';
-import boxen from "boxen";
-
+import boxen from 'boxen';
 import * as fs from 'fs';
 import path from 'path';
-import { CommandInteraction, SelectMenuInteraction } from "discord.js";
-
+import {
+    ButtonInteraction,
+    CommandInteraction,
+    ModalSubmitInteraction,
+    StringSelectMenuInteraction,
+} from 'discord.js';
+import { DatabaseModel } from './DatabaseModel.js';
 
 export abstract class Module {
-
     protected path: string;
     protected framework: ZumitoFramework;
     protected commands: Map<string, Command> = new Map();
     protected events: Map<string, FrameworkEvent> = new Map();
-    protected models: Map<string, any> = new Map();
+    protected models: Array<DatabaseModel> = [];
 
     constructor(path, framework) {
         this.path = path;
@@ -31,25 +32,33 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
-        // console.error('[🔄🔴 ] Error initializing module ' + this.constructor.name);
-        // console.log(boxen(e + '\n' + e.stack, { padding: 1 }));
     }
 
     async registerCommands() {
         if (fs.existsSync(path.join(this.path, 'commands'))) {
-            let files = fs.readdirSync(path.join(this.path, 'commands'));
-            for (let file of files) {
+            const files = fs.readdirSync(path.join(this.path, 'commands'));
+            for (const file of files) {
                 if (file.endsWith('.js') || file.endsWith('.ts')) {
-                    let command = await import('file://' + path.join(this.path, 'commands', file)).catch(e => {
-                        console.error(`[🔄🔴 ] Error loading ${file.slice(0, -3)} command on module ${this.constructor.name}`);
+                    let command = await import(
+                        'file://' + path.join(this.path, 'commands', file)
+                    ).catch((e) => {
+                        console.error(
+                            `[🔄🔴 ] Error loading ${file.slice(
+                                0,
+                                -3
+                            )} command on module ${this.constructor.name}`
+                        );
                         console.error(e + '\n' + e.name + '\n' + e.stack);
                     });
                     command = Object.values(command)[0];
                     command = new command();
-                    this.commands.set(command.constructor.name.toLowerCase(), command)
+                    this.commands.set(
+                        command.constructor.name.toLowerCase(),
+                        command
+                    );
                 }
-            };
-            
+            }
+
             // register watcher
             if (process.env.DEBUG) {
                 /*
@@ -57,7 +66,12 @@ export abstract class Module {
                     Appart from that, esm module cache invalidation is not working properly
                     and can cause memory leaks and crashes.
                 */
-                chokidar.watch(path.resolve(path.join(this.path, 'commands')), { ignored: /^\./, persistent: true, ignoreInitial: true })
+                chokidar
+                    .watch(path.resolve(path.join(this.path, 'commands')), {
+                        ignored: /^\./,
+                        persistent: true,
+                        ignoreInitial: true,
+                    })
                     .on('add', this.onCommandCreated.bind(this))
                     .on('change', this.onCommandChanged.bind(this))
                     //.on('unlink', function(path) {console.log('File', path, 'has been removed');})
@@ -74,7 +88,7 @@ export abstract class Module {
             });
             command = Object.values(command)[0];
             command = new command();
-            this.commands.set(command.constructor.name.toLowerCase(), command);
+            this.framework.commands.set(command.constructor.name.toLowerCase(), command);
             console.debug('[🆕🟢 ] Command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
         }
     }
@@ -87,7 +101,7 @@ export abstract class Module {
             });
             command = Object.values(command)[0];
             command = new command();
-            this.commands.set(command.constructor.name.toLowerCase(), command);
+            this.framework.commands.set(command.constructor.name.toLowerCase(), command);
             console.debug('[🔄🟢 ] Command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' reloaded');
         }
     }
@@ -103,51 +117,65 @@ export abstract class Module {
 
     async registerEvents() {
         if (!fs.existsSync(path.join(this.path, 'events'))) return;
-        let files = fs.readdirSync(path.join(this.path, 'events'));
-        for (let file of files) {
-            if (file == 'discord') {
-                let moduleFileNames = fs.readdirSync(path.join(this.path, 'events', 'discord'));
-                for (let moduleFileName of moduleFileNames) {
-                    if (moduleFileName.endsWith('.js') || moduleFileName.endsWith('.ts')) {
-                        let event = await import('file://' + path.join(this.path, 'events', 'discord', moduleFileName)).catch(e => {
-                            console.error(`[🔄🔴 ] Error loading ${moduleFileName.slice(0, -3)} event on module ${this.constructor.name}`);
-                            console.log(boxen(e + '\n' + e.name + '\n' + e.stack, { padding: 1 }));
-                        });
-                        event = Object.values(event)[0];
-                        event = new event();
-                        this.events.set(event.constructor.name.toLowerCase(), event);
-                        this.registerDiscordEvent(event);
-                    }
-                }
+        const files = fs.readdirSync(path.join(this.path, 'events'));
+        for (const file of files) {
+            // if file is folder
+            if (fs.lstatSync(path.join(this.path, 'events', file)).isDirectory()) {
+                console.log('registering events folder ' + file);
+                this.registerEventsFolder(file);
             }
         }
     }
 
-    registerDiscordEvent(frameworkEvent: FrameworkEvent) {
-        if (frameworkEvent.disabled) return;
-
-        const eventName = frameworkEvent.constructor.name.charAt(0).toLowerCase() + frameworkEvent.constructor.name.slice(1);
-        const emitter = this.framework.client;
-        const once = frameworkEvent.once; // A simple variable which returns if the event should run once
-
-        // Try catch block to throw an error if the code in try{} doesn't work
-        try {
-            emitter[once ? 'once' : 'on'](eventName, (...args) => frameworkEvent.execute(this.parseEventArgs(args))); // Run the event using the above defined emitter (client)
-        } catch (error) {
-            console.log(error, error.message, error,name)
-            console.error(error.stack); // If there is an error, console log the error stack message
+    async registerEventsFolder(folder: string) {
+        const folderPath = path.join(this.path, 'events', folder);
+        if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                let event = await import(
+                    'file://' + path.join(folderPath, file)
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} event on module ${this.constructor.name}`
+                    );
+                });
+                event = Object.values(event)[0];
+                event = new event();
+                this.events.set(event.constructor.name.toLowerCase(), event);
+                this.registerEvent(event, folder);
+            }
         }
     }
 
+    registerEvent(frameworkEvent: FrameworkEvent, emitterName: string) {
+        if (frameworkEvent.disabled) return;
+        const once = frameworkEvent.once;
+        const eventName =
+            frameworkEvent.constructor.name.charAt(0).toLowerCase() +
+            frameworkEvent.constructor.name.slice(1);
+
+        this.framework.eventManager.addEventListener(emitterName, eventName, (...args: any[]) => {
+            const finalArgs = this.parseEventArgs(args);
+            frameworkEvent.execute(finalArgs);
+        }, { once });
+    }
+
     parseEventArgs(args: any[]): any {
-        let finalArgs: EventParameters = {
+        const finalArgs: EventParameters = {
             framework: this.framework,
             client: this.framework.client,
         };
-        args.forEach(arg => {
+        args.forEach((arg) => {
             finalArgs[arg.constructor.name.toLowerCase()] = arg;
         });
-        let interaction = args.find((arg: any) => arg instanceof SelectMenuInteraction || arg instanceof CommandInteraction);
+        const interaction = args.find(
+            (arg: any) =>
+                arg instanceof StringSelectMenuInteraction ||
+                arg instanceof CommandInteraction ||
+                arg instanceof ButtonInteraction ||
+                arg instanceof ModalSubmitInteraction
+        );
         if (interaction) {
             finalArgs['interaction'] = interaction;
         }
@@ -158,28 +186,56 @@ export abstract class Module {
         return this.events;
     }
 
-    async registerTranslations() {
-        if (!fs.existsSync(path.join(this.path, 'translations'))) return;
-        let files = fs.readdirSync(path.join(this.path, 'translations'));
-        for (let file of files) {
+    async registerTranslations(subpath = '') {
+        if (!fs.existsSync(path.join(this.path, 'translations', subpath)))
+            return;
+        const files = fs.readdirSync(
+            path.join(this.path, 'translations', subpath)
+        );
+        for (const file of files) {
             if (file.endsWith('.json')) {
-                let json = await import('file://' + `${this.path}/translations/${file}`, {
-                    assert: {
-                        type: "json",
-                    },
-                }).catch(e => {
-                    console.error(`[🔄🔴 ] Error loading ${file.slice(0, -5)} translations on module ${this.constructor.name}`);
-                    console.log(boxen(e + '\n' + e.name + '\n' + e.stack, { padding: 1 }));
-                });
-                let lang = file.slice(0, -5);
-                this.parseTranslation('', lang,  json.default);
+                const json = await this.loadTranslationFile(subpath, file);
+                const lang = file.slice(0, -5);
+                const baseKey = subpath
+                    ? subpath.replaceAll('/', '.').replaceAll('\\', '.') + '.'
+                    : '';
+                this.parseTranslation(baseKey, lang, json);
+            } else if (
+                fs
+                    .lstatSync(
+                        path.join(this.path, 'translations', subpath, file)
+                    )
+                    .isDirectory()
+            ) {
+                await this.registerTranslations(path.join(subpath, file));
             }
         }
-    }       
+    }
+
+    async loadTranslationFile(subpath: string, file: string) {
+        if (subpath) subpath = subpath + '/';
+        const json = await import(
+            'file://' + `${this.path}/translations/${subpath}${file}`,
+            {
+                assert: {
+                    type: 'json',
+                },
+            }
+        ).catch((e) => {
+            console.error(
+                `[🔄🔴 ] Error loading ${file.slice(
+                    0,
+                    -5
+                )} translations on module ${this.constructor.name}`
+            );
+            console.error(e + '\n' + e.name + '\n' + e.stack);
+        });
+        return json.default;
+    }
 
     parseTranslation(path: string, lang: string, json: any): any {
         if (typeof json === 'object') {
-            for (let key in json) {
+            for (const key in json) {
                 this.parseTranslation(path + key + '.', lang, json[key]);
             }
         } else {
@@ -189,25 +245,28 @@ export abstract class Module {
 
     async registerModels() {
         if (!fs.existsSync(path.join(this.path, 'models'))) return;
-        let files = fs.readdirSync(path.join(this.path, 'models'));
-        for (let file of files) {
-            if (file.endsWith('.json')) {
-                let modelName = file.slice(0, -5).charAt(0).toUpperCase() + file.slice(0, -5).slice(1);
-                let modelDefiniton = await import('file://' + `${this.path}/models/${file}`, {
-                    assert: {
-                        type: "json",
-                    },
-                }).catch(e => {
-                    console.error(`[🔄🔴 ] Error loading model ${modelName} on module ${this.constructor.name}`);
-                    console.error(e, e.name, e.stack);
+        const files = fs.readdirSync(path.join(this.path, 'models'));
+        for (const file of files) {
+            if (file.endsWith('.ts') || file.endsWith('.js')) {
+                let model = await import(
+                    'file://' + `${this.path}/models/${file}`
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(
+                            0,
+                            -3
+                        )} model on module ${this.constructor.name}`
+                    );
+                    console.error(e + '\n' + e.name + '\n' + e.stack);
                 });
-                this.models.set(modelName, modelDefiniton.default);
+                model = Object.values(model)[0];
+                model = new model();
+                this.models.push(model);
             }
         }
     }
 
-    getModels(): Map<string, any> {
+    getModels(): Array<DatabaseModel> {
         return this.models;
     }
-
 }

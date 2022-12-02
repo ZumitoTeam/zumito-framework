@@ -1,46 +1,70 @@
 {
   "name": "zumito-framework",
-  "version": "1.1.41",
+  "version": "1.1.71",
   "description": "Discord.js bot framework",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
     "/dist",
-    "/plopfile.js",
-    "/baseModule",
-    "/plop-templates"
+    "/baseModule"
   ],
-  "bin": {
-    "generate": "./templateGenerator.mjs"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
+    "build-watch": "tsc -w",
+    "lint": "eslint .",
     "publish-npm": "npm publish",
     "docs": "typedoc --out docs src"
   },
-  "author": "fernandomema",
+  "author": "ZumitoTeam",
   "license": "ISC",
   "dependencies": {
+    "@discordjs/rest": "^1.7.0",
     "@types/express": "^4.17.13",
     "autocorrect": "^1.2.0",
     "better-logging": "^5.0.0",
     "boxen": "^7.0.0",
+    "canario": "^1.0.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
-    "discord.js": "^14.3.0",
+    "discord.js": "^14.9.0",
     "error-stack-parser": "^2.1.4",
     "express": "^4.18.1",
     "leven": "^4.0.0",
     "mongoose": "^6.6.5",
-    "plop": "^3.1.1"
+    "tingodb": "^0.6.1"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",
+    "@typescript-eslint/eslint-plugin": "^5.48.2",
+    "@typescript-eslint/parser": "^5.48.2",
+    "eslint": "^8.32.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-check-file": "^2.2.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.3",
     "typedoc": "^0.23.14",
     "typescript": "^4.8.3"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./discord": "./dist/discord/index.js"
+  },
+  "typesVersions": {
+    "*": {
+      ".": [
+        "dist/index.d.ts"
+      ],
+      "discord": [
+        "dist/discord/index.d.ts"
+      ]
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ZumitoTeam/zumito-framework.git"
+  }
 }

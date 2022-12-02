@@ -1,37 +1,3 @@
 {
-	"tags":
-	{
-		"allowUnknownTags" : true
-	},
-	"plugins":[
-		 "plugins/markdown"
-		,"/Users/ferna/AppData/Local/npm-cache/_npx/39334eb8977a914a/node_modules/tsdoc/template/plugins/TSDoc.js"
-	],
-	"opts":
-	{
-		"template"	:"/Users/ferna/AppData/Local/npm-cache/_npx/39334eb8977a914a/node_modules/tsdoc/template",
-		"recurse"	:"true"
-	},
-	"templates" : {
-		"cleverLinks"     : false,
-		"monospaceLinks"  : false
-	},
-	"source":
-	{
-		"includePattern": "(\\.d)?\\.ts$"
-	},
-	"markdown"  : {
-		"parser"   : "gfm",
-		"hardwrap" : true
-	},
-	"tsdoc":{
-		"source"		:"/Users/ferna/gitProjects/zumito-framework/src/",
-		"destination"	:"/Users/ferna/gitProjects/zumito-framework/docs",
-		"tutorials"		:"",
-		"systemName"	: "zumito-framework",
-		"footer"		: "",
-		"copyright"		: "zumito-framework Copyright © 2022 ferna.",
-		"outputSourceFiles" : true,
-		"commentsOnly": true
-	}
+	"$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json"
 }
