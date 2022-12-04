@@ -16,10 +16,10 @@ export class Command {
     type = CommandType.prefix;
     constructor() {
     }
-    executePrefixCommand({ message, interaction, args, client, framework }) {
-        this.execute({ message, interaction, args, client, framework });
+    executePrefixCommand({ message, interaction, args, client, framework, trans }) {
+        this.execute({ message, interaction, args, client, framework, trans });
     }
-    executeSlashCommand({ message, interaction, args, client, framework }) {
-        this.execute({ message, interaction, args, client, framework });
+    executeSlashCommand({ message, interaction, args, client, framework, trans }) {
+        this.execute({ message, interaction, args, client, framework, trans });
     }
 }

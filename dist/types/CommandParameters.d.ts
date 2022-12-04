@@ -15,4 +15,5 @@ export interface CommandParameters {
     client: Client;
     framework: ZumitoFramework;
     guildSettings?: any;
+    trans: Function;
 }

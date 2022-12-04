@@ -37,10 +37,17 @@ export class InteractionCreate extends FrameworkEvent {
                 }
             });
             if (![CommandType.any, CommandType.separated, CommandType.slash].includes(commandInstance.type)) return;
+            const trans = (key: string, params: any) => {
+                if (key.startsWith('$')) {
+                    return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
+                } else {
+                    return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
+                }
+            }
             if (commandInstance.type === CommandType.separated || commandInstance.type === CommandType.slash) {
-                await commandInstance.executeSlashCommand({client, interaction, args, framework, guildSettings});
+                await commandInstance.executeSlashCommand({client, interaction, args, framework, guildSettings, trans});
             } else {
-                await commandInstance.execute({client, interaction, args, framework, guildSettings});
+                await commandInstance.execute({client, interaction, args, framework, guildSettings, trans});
             }
         } else if(interaction.isButton()) {
             
