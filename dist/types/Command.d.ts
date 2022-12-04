@@ -18,7 +18,7 @@ export declare abstract class Command {
     type: string;
     constructor();
     abstract execute({ message, interaction, args, client, framework }: CommandParameters): void;
-    executePrefixCommand({ message, interaction, args, client, framework }: CommandParameters): void;
-    executeSlashCommand({ message, interaction, args, client, framework }: CommandParameters): void;
+    executePrefixCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
+    executeSlashCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
     abstract selectMenu({ path, interaction, client, framework }: SelectMenuParameters): void;
 }

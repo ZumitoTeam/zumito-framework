@@ -1,4 +1,5 @@
 import { PermissionFlagsBits, SystemChannelFlagsBitField } from "discord.js";
+
 import { CommandArgDefinition } from "./CommandArgDefinition.js";
 import { CommandParameters } from "./CommandParameters.js";
 import { CommandType } from "./CommandType.js";
@@ -27,12 +28,12 @@ export abstract class Command {
 
     abstract execute({ message, interaction, args, client, framework}: CommandParameters): void;
 
-    executePrefixCommand({ message, interaction, args, client, framework}: CommandParameters) {
-        this.execute({ message, interaction, args, client, framework });
+    executePrefixCommand({ message, interaction, args, client, framework, trans }: CommandParameters) {
+        this.execute({ message, interaction, args, client, framework, trans });
     }
 
-    executeSlashCommand({ message, interaction, args, client, framework}: CommandParameters) {
-        this.execute({ message, interaction, args, client, framework });
+    executeSlashCommand({ message, interaction, args, client, framework, trans }: CommandParameters) {
+        this.execute({ message, interaction, args, client, framework, trans });
     }
 
     abstract selectMenu({path, interaction, client, framework}: SelectMenuParameters): void;

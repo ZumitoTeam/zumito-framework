@@ -30,11 +30,19 @@ export class InteractionCreate extends FrameworkEvent {
             });
             if (![CommandType.any, CommandType.separated, CommandType.slash].includes(commandInstance.type))
                 return;
+            const trans = (key, params) => {
+                if (key.startsWith('$')) {
+                    return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
+                }
+                else {
+                    return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
+                }
+            };
             if (commandInstance.type === CommandType.separated || commandInstance.type === CommandType.slash) {
-                await commandInstance.executeSlashCommand({ client, interaction, args, framework, guildSettings });
+                await commandInstance.executeSlashCommand({ client, interaction, args, framework, guildSettings, trans });
             }
             else {
-                await commandInstance.execute({ client, interaction, args, framework, guildSettings });
+                await commandInstance.execute({ client, interaction, args, framework, guildSettings, trans });
             }
         }
         else if (interaction.isButton()) {
@@ -42,6 +50,8 @@ export class InteractionCreate extends FrameworkEvent {
         else if (interaction.isSelectMenu()) {
             let path = interaction.customId.split('.');
             const command = framework.commands.get(path[0]);
+            if (!command)
+                throw new Error(`Command ${path[0]} not found or select menu id bad formatted`);
             if (command.selectMenu) {
                 command.selectMenu({ path, interaction, client, framework, guildSettings });
             }

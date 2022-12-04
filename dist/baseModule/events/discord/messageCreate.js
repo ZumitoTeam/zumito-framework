@@ -1,9 +1,9 @@
+import * as url from 'url';
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } from "discord.js";
+import ErrorStackParser from 'error-stack-parser';
 import { FrameworkEvent } from "../../../types/FrameworkEvent.js";
 import { ZumitoFramework } from "../../../ZumitoFramework.js";
 import leven from 'leven';
-import ErrorStackParser from 'error-stack-parser';
-import * as url from 'url';
 import path from "path";
 export class MessageCreate extends FrameworkEvent {
     once = false;
@@ -99,6 +99,14 @@ export class MessageCreate extends FrameworkEvent {
                     client: framework.client,
                     framework: framework,
                     guildSettings: guildSettings,
+                    trans: (key, params) => {
+                        if (key.startsWith('$')) {
+                            return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
+                        }
+                        else {
+                            return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
+                        }
+                    }
                 });
                 if (!message.channel.isDMBased && !message.deletable && (false)) { // false = settings.deleteCommands
                     try {
