@@ -137,24 +137,34 @@ export class Module {
     getEvents() {
         return this.events;
     }
-    async registerTranslations() {
-        if (!fs.existsSync(path.join(this.path, 'translations')))
+    async registerTranslations(subpath = '') {
+        if (!fs.existsSync(path.join(this.path, 'translations', subpath)))
             return;
-        let files = fs.readdirSync(path.join(this.path, 'translations'));
+        let files = fs.readdirSync(path.join(this.path, 'translations', subpath));
         for (let file of files) {
             if (file.endsWith('.json')) {
-                let json = await import('file://' + `${this.path}/translations/${file}`, {
-                    assert: {
-                        type: "json",
-                    },
-                }).catch(e => {
-                    console.error(`[🔄🔴 ] Error loading ${file.slice(0, -5)} translations on module ${this.constructor.name}`);
-                    console.log(boxen(e + '\n' + e.name + '\n' + e.stack, { padding: 1 }));
-                });
+                let json = await this.loadTranslationFile(subpath, file);
                 let lang = file.slice(0, -5);
-                this.parseTranslation('', lang, json.default);
+                subpath = subpath ? subpath.replaceAll('/', '.') + '.' : '';
+                this.parseTranslation(subpath, lang, json);
+            }
+            else if (fs.lstatSync(path.join(this.path, 'translations', file)).isDirectory()) {
+                await this.registerTranslations(path.join(subpath, file));
             }
         }
+    }
+    async loadTranslationFile(subpath, file) {
+        if (subpath)
+            subpath = subpath + '/';
+        let json = await import('file://' + `${this.path}/translations/${subpath}${file}`, {
+            assert: {
+                type: "json",
+            },
+        }).catch(e => {
+            console.error(`[🔄🔴 ] Error loading ${file.slice(0, -5)} translations on module ${this.constructor.name}`);
+            console.error(e + '\n' + e.name + '\n' + e.stack);
+        });
+        return json.default;
     }
     parseTranslation(path, lang, json) {
         if (typeof json === 'object') {

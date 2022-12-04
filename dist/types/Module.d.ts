@@ -18,7 +18,8 @@ export declare abstract class Module {
     registerDiscordEvent(frameworkEvent: FrameworkEvent): void;
     parseEventArgs(args: any[]): any;
     getEvents(): Map<string, FrameworkEvent>;
-    registerTranslations(): Promise<void>;
+    registerTranslations(subpath?: string): Promise<void>;
+    loadTranslationFile(subpath: string, file: string): Promise<any>;
     parseTranslation(path: string, lang: string, json: any): any;
     registerModels(): Promise<void>;
     getModels(): Map<string, any>;
