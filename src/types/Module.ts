@@ -165,9 +165,9 @@ export abstract class Module {
             if (file.endsWith('.json')) {
                 let json = await this.loadTranslationFile(subpath, file);
                 let lang = file.slice(0, -5);
-                subpath = subpath ? subpath.replaceAll('/', '.') + '.' : '';
-                this.parseTranslation(subpath, lang,  json);
-            } else if (fs.lstatSync(path.join(this.path, 'translations', file)).isDirectory()) {
+                let baseKey = subpath ? subpath.replaceAll('/', '.').replaceAll('\\', '.') + '.' : '';
+                this.parseTranslation(baseKey, lang,  json);
+            } else if (fs.lstatSync(path.join(this.path, 'translations', subpath, file)).isDirectory()) {
                 await this.registerTranslations(path.join(subpath, file));
             }
         }
