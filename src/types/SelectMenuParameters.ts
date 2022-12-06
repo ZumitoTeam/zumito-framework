@@ -1,4 +1,5 @@
 import { Client, Interaction, SelectMenuInteraction } from "discord.js";
+
 import { ZumitoFramework } from "../ZumitoFramework.js";
 
 export interface SelectMenuParameters {
@@ -7,4 +8,5 @@ export interface SelectMenuParameters {
     client: Client;
     framework: ZumitoFramework;
     guildSettings?: any;
+    trans: (key: string, params: any) => string;
 }
