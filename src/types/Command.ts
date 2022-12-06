@@ -36,6 +36,6 @@ export abstract class Command {
         this.execute({ message, interaction, args, client, framework, trans });
     }
 
-    abstract selectMenu({path, interaction, client, framework}: SelectMenuParameters): void;
+    abstract selectMenu({path, interaction, client, framework, trans}: SelectMenuParameters): void;
 
 }

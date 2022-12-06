@@ -6,4 +6,5 @@ export interface SelectMenuParameters {
     client: Client;
     framework: ZumitoFramework;
     guildSettings?: any;
+    trans: (key: string, params: any) => string;
 }

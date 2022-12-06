@@ -49,11 +49,19 @@ export class InteractionCreate extends FrameworkEvent {
         }
         else if (interaction.isSelectMenu()) {
             let path = interaction.customId.split('.');
-            const command = framework.commands.get(path[0]);
-            if (!command)
+            const commandInstance = framework.commands.get(path[0]);
+            if (!commandInstance)
                 throw new Error(`Command ${path[0]} not found or select menu id bad formatted`);
-            if (command.selectMenu) {
-                command.selectMenu({ path, interaction, client, framework, guildSettings });
+            const trans = (key, params) => {
+                if (key.startsWith('$')) {
+                    return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
+                }
+                else {
+                    return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
+                }
+            };
+            if (commandInstance.selectMenu) {
+                commandInstance.selectMenu({ path, interaction, client, framework, guildSettings, trans });
             }
         }
     }
