@@ -37,7 +37,7 @@ export class InteractionCreate extends FrameworkEvent {
                 }
             });
             if (![CommandType.any, CommandType.separated, CommandType.slash].includes(commandInstance.type)) return;
-            const trans = (key: string, params: any) => {
+            const trans = (key: string, params?: any) => {
                 if (key.startsWith('$')) {
                     return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
                 } else {
@@ -55,7 +55,7 @@ export class InteractionCreate extends FrameworkEvent {
             let path = interaction.customId.split('.');
             const commandInstance = framework.commands.get(path[0]);
             if (!commandInstance) throw new Error(`Command ${path[0]} not found or select menu id bad formatted`);
-            const trans = (key: string, params: any) => {
+            const trans = (key: string, params?: any) => {
                 if (key.startsWith('$')) {
                     return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
                 } else {
