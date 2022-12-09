@@ -105,7 +105,7 @@ export class MessageCreate extends FrameworkEvent {
                     client: framework.client,
                     framework: framework,
                     guildSettings: guildSettings,
-                    trans: (key: string, params: any) => {
+                    trans: (key: string, params?: any) => {
                         if (key.startsWith('$')) {
                             return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
                         } else {
