@@ -99,7 +99,7 @@ export class ZumitoFramework {
      * @see {@link TranslationManager}
      */
     translations: TranslationManager;
-    routes: any;
+    routes: Map<string, (req: Request, res: Response) => void>;
     
     /**
      * The database models loaded in the framework.
@@ -161,6 +161,7 @@ export class ZumitoFramework {
         this.events = new Map();
         this.translations = new TranslationManager();
         this.models = [];
+        this.routes = new Map();
         this.eventManager = new EventManager();
 
         if (settings.logLevel) {
@@ -253,6 +254,9 @@ export class ZumitoFramework {
         //Route Prefixes
         //this.app.use("/", indexRouter);
         //this.app.use("/api/", apiRouter);
+        this.routes.forEach((router, path) => {
+            this.app.use(path, router);
+        });
 
         // throw 404 if URL not found
         this.app.all('*', function (req, res) {
@@ -369,12 +373,9 @@ export class ZumitoFramework {
             this.models.push(model);
         });
 
-        /*
-
         // Register module routes
-        this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
+        this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()] as any);
 
-        */
     }
 
     /**
