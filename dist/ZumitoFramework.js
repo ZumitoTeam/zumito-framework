@@ -38,6 +38,7 @@ export class ZumitoFramework {
     models;
     database;
     app;
+    managers = new Map();
     /**
      * @constructor
      * @description Creates a new instance of the framework.
@@ -290,6 +291,12 @@ export class ZumitoFramework {
         });
         const data = await rest.put(Routes.applicationCommands(this.settings.discordClientOptions.clientId), { body: commands });
         console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+    }
+    addManager(name, manager) {
+        this.managers.set(name, manager);
+    }
+    getManager(name) {
+        return this.managers.get(name);
     }
 }
 function MergeRecursive(obj1, obj2) {

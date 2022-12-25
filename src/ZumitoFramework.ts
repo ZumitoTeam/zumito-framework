@@ -47,6 +47,7 @@ export class ZumitoFramework {
     models: any;
     database: any;
     app: any;
+    managers: Map<string, any> = new Map();
     
 
     /**
@@ -329,6 +330,14 @@ export class ZumitoFramework {
             { body: commands },
         );
         console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+    }
+
+    addManager(name: string, manager: any) {
+        this.managers.set(name, manager);
+    }
+
+    getManager(name: string) {
+        return this.managers.get(name);
     }
 }
 

@@ -24,6 +24,7 @@ export declare class ZumitoFramework {
     models: any;
     database: any;
     app: any;
+    managers: Map<string, any>;
     /**
      * @constructor
      * @description Creates a new instance of the framework.
@@ -48,4 +49,6 @@ export declare class ZumitoFramework {
     memberHasPermission(member: GuildMember, channel: TextChannel, permission: bigint): Promise<boolean>;
     getGuildSettings(guildId: string): Promise<any>;
     refreshSlashCommands(): Promise<void>;
+    addManager(name: string, manager: any): void;
+    getManager(name: string): any;
 }
