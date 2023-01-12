@@ -30,14 +30,7 @@ export class InteractionCreate extends FrameworkEvent {
             });
             if (![CommandType.any, CommandType.separated, CommandType.slash].includes(commandInstance.type))
                 return;
-            const trans = (key, params) => {
-                if (key.startsWith('$')) {
-                    return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
-                }
-                else {
-                    return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
-                }
-            };
+            const trans = this.getTransMethod(commandInstance, guildSettings, framework);
             if (commandInstance.type === CommandType.separated || commandInstance.type === CommandType.slash) {
                 await commandInstance.executeSlashCommand({ client, interaction, args, framework, guildSettings, trans });
             }
@@ -46,6 +39,15 @@ export class InteractionCreate extends FrameworkEvent {
             }
         }
         else if (interaction.isButton()) {
+            interaction = interaction;
+            let path = interaction.customId.split('.');
+            const commandInstance = framework.commands.get(path[0]);
+            if (!commandInstance)
+                throw new Error(`Command ${path[0]} not found or button id bad formatted`);
+            // If the command has impements ButtonPress class then execute the method
+            if (commandInstance.constructor.prototype.hasOwnProperty('buttonPressed')) {
+                commandInstance.buttonPressed({ path, interaction, client, framework, guildSettings });
+            }
         }
         else if (interaction.isSelectMenu()) {
             let path = interaction.customId.split('.');
@@ -64,5 +66,15 @@ export class InteractionCreate extends FrameworkEvent {
                 commandInstance.selectMenu({ path, interaction, client, framework, guildSettings, trans });
             }
         }
+    }
+    getTransMethod(commandInstance, framework, guildSettings) {
+        return (key, params) => {
+            if (key.startsWith('$')) {
+                return framework.translations.get(key.replace('$', ''), guildSettings.lang, params);
+            }
+            else {
+                return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
+            }
+        };
     }
 }
