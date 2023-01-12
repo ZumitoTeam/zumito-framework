@@ -1,4 +1,4 @@
-import { Channel, GuildMember, Message, PermissionsBitField, SlashCommandBuilder, TextChannel } from "discord.js";
+import { Channel, GuildMember, Message, PermissionsBitField, SlashCommandBuilder, SlashCommandSubcommandBuilder, TextChannel } from "discord.js";
 import { CommandArguments } from "./types/CommandArguments.js";
 import { Command } from "./types/Command.js";
 import { FrameworkSettings } from "./types/FrameworkSettings.js";
@@ -276,59 +276,105 @@ export class ZumitoFramework {
 
     async refreshSlashCommands() {
         const rest = new REST({ version: '10' }).setToken(this.settings.discordClientOptions.token);
-        let commands = Array.from(this.commands.values())
+        let commands: any = [];
+        Array.from(this.commands.values())
             .filter((command: Command) => command.type == CommandType.slash || command.type == CommandType.separated || command.type == CommandType.any)
-            .map((command: Command) => {
-                let slashCommand = new SlashCommandBuilder()
-                    .setName(command.name)
-                    .setDescription(this.translations.get('command.' + command.name + '.description', 'en'));
-                if (command.args) {
-                    command.args.forEach((arg: CommandArgDefinition) => {
-                        let method;
-                        switch (arg.type) {
-                            case 'string':
-                                method = 'addStringOption';
-                                break;
-                            case 'user':
-                            case 'member':
-                                method = 'addUserOption';
-                                break;
-                            case 'channel':
-                                method = 'addChannelOption';
-                                break;
-                            case 'role':
-                                method = 'addRoleOption';
-                                break;
-                            default:
-                                throw new Error('Invalid argument type ' + arg.type);
-                        }
-                        slashCommand[method]((option) => {
-                            option.setName(arg.name);
-                            option.setDescription(this.translations.get('command.' + command.name + '.args.' + arg.name + '.description', 'en'));
-                            option.setRequired(!arg.optional);
-                            if (arg.choices) {
-                                // if arg.choices is function, call it
-                                if (typeof arg.choices == 'function') {
-                                    arg.choices = arg.choices() as CommandChoiceDefinition[];
-                                }
-                                arg.choices.forEach((choice) => {
-                                    option.addChoices({
-                                        name: choice.name,
-                                        value: choice.value
-                                    });
-                                });
-                            }
-                            return option;
-                        });
-                    });
-                }
-                return slashCommand.toJSON();
+            .filter((command: Command) => command.parentCommand == null)
+            .forEach((command: Command) => {
+                commands.push(this.parseSlashCommandFromCommand(command).toJSON());
+                this.getChildCommands(command).forEach((childCommand: Command) => {
+                    commands.push(this.parseSlashCommandFromCommand(childCommand).toJSON());
+                });
             });
+        console.log(commands);
         const data: any = await rest.put(
             Routes.applicationCommands(this.settings.discordClientOptions.clientId),
             { body: commands },
         );
         console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+    }
+
+    getChildCommands(command: Command): Command[] {
+        // Iterate over all subcommands of the command and add them to the list
+        // Iterate over childs of childs
+        let childCommands: Command[] = [];
+        command.subcommands.forEach((subcommand: Command) => {
+            childCommands.push(subcommand);
+            childCommands = childCommands.concat(this.getChildCommands(subcommand));
+        });
+        return childCommands;
+    }
+
+    parseSlashCommandFromCommand(command: Command, slashCommand?: SlashCommandBuilder | SlashCommandSubcommandBuilder): SlashCommandBuilder | SlashCommandSubcommandBuilder {
+        if (!slashCommand) {
+            slashCommand = new SlashCommandBuilder();
+        }
+
+        let descriptions = {};
+        this.translations.getLanguages().forEach((language: string) => {
+            descriptions[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.description', language, {}, 'No description yet');
+        });
+        console.log(descriptions);
+        
+        slashCommand
+            .setName(command.name)
+            .setDescriptionLocalizations(descriptions);
+        if (command.args) {
+            command.args.forEach((arg: CommandArgDefinition) => {
+                let method;
+                switch (arg.type) {
+                    case 'string':
+                        method = 'addStringOption';
+                        break;
+                    case 'user':
+                    case 'member':
+                        method = 'addUserOption';
+                        break;
+                    case 'channel':
+                        method = 'addChannelOption';
+                        break;
+                    case 'role':
+                        method = 'addRoleOption';
+                        break;
+                    default:
+                        throw new Error('Invalid argument type ' + arg.type);
+                }
+                slashCommand[method]((option) => {
+                    let names = {};
+                    let descriptions = {};
+                    this.translations.getLanguages().forEach((language: string) => {
+                        names[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.arguments.' + arg.name + '.name', language, {}, arg.name);
+                        descriptions[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.arguments.' + arg.name + '.description', language, {}, 'No description yet');
+                    });
+                    console.log(names);
+                    console.log(descriptions);
+                    option.setNameLocalizations(names);
+                    option.setDescriptionLocalizations(descriptions);
+                    option.setRequired(!arg.optional);
+                    if (arg.choices) {
+                        // if arg.choices is function, call it
+                        if (typeof arg.choices == 'function') {
+                            arg.choices = arg.choices() as CommandChoiceDefinition[];
+                        }
+                        arg.choices.forEach((choice) => {
+                            option.addChoices({
+                                name: choice.name,
+                                value: choice.value
+                            });
+                        });
+                    }
+                    return option;
+                });
+            });
+        }
+        if (slashCommand instanceof SlashCommandBuilder && command.subcommands.size > 0) {
+            command.subcommands.forEach((subcommand: Command) => {
+                (slashCommand as SlashCommandBuilder).addSubcommand((subcommandBuilder: SlashCommandSubcommandBuilder): SlashCommandSubcommandBuilder => {
+                    return this.parseSlashCommandFromCommand(subcommand, subcommandBuilder) as SlashCommandSubcommandBuilder;
+                });
+            });
+        }
+        return slashCommand;
     }
 }
 

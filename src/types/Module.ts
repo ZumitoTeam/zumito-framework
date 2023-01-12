@@ -49,7 +49,29 @@ export abstract class Module {
                     this.commands.set(command.constructor.name.toLowerCase(), command)
                 }
             };
-            
+
+            debugger;
+            // register subcommands
+            for (let command of this.commands.values()) {
+                if (command.parentCommand) {
+                    command.updateParentCommand(this.commands);
+                    if (command.getParentCommand() !== null) {
+                        command.getParentCommand().subcommands.set(command.name, command);
+                    }
+                    
+                    // Get string splited by - wich patch to the commands starting from the parent of the parent of the parent command and ending into the subcommand
+                    // Example: parentCommand-parentCommand-subcommand
+                    let commandPath = command.name;
+                    let parentCommand = command.getParentCommand();
+                    while (parentCommand.parentCommand) {
+                        commandPath = parentCommand.name + '-' + commandPath;
+                        parentCommand = parentCommand.getParentCommand();
+                    }
+                    commandPath = parentCommand.name + '-' + commandPath;
+                    this.commands.set(commandPath, command);
+                }
+            }
+
             // register watcher
             if (process.env.DEBUG) {
                 /*

@@ -16,9 +16,14 @@ export declare abstract class Command {
     dm: boolean;
     args: CommandArgDefinition[];
     type: string;
+    subcommands: Map<string, Command>;
+    parentCommand: Command | string | null;
     constructor();
     abstract execute({ message, interaction, args, client, framework }: CommandParameters): void;
     executePrefixCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
     executeSlashCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
     abstract selectMenu({ path, interaction, client, framework, trans }: SelectMenuParameters): void;
+    getParentCommand(): Command | null;
+    setParentCommand(command: Command): void;
+    updateParentCommand(commands: Map<string, Command>): void;
 }

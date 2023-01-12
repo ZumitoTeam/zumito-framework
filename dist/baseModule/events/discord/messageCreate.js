@@ -10,23 +10,34 @@ export class MessageCreate extends FrameworkEvent {
     async execute({ message, client, framework }) {
         let channel = message.channel;
         let prefix = framework.settings.defaultPrefix;
-        const args = ZumitoFramework.splitCommandLine(message.content.slice(prefix.length));
+        let args = ZumitoFramework.splitCommandLine(message.content.slice(prefix.length));
         const command = args.shift().toLowerCase();
         let commandInstance;
+        const commands = new Map([...framework.commands].filter(([commandName, command]) => command.parentCommand === null));
         if (message.content.startsWith(prefix)) {
-            if (!framework.commands.has(command)) {
-                let commandNames = Array.from(framework.commands.keys());
+            if (!commands.has(command)) {
+                let commandNames = Array.from(commands.keys());
                 var correctedCommand = this.autocorrect(command, commandNames);
-                if (framework.commands.has(correctedCommand)) {
-                    commandInstance = framework.commands.get(correctedCommand);
+                if (commands.has(correctedCommand)) {
+                    commandInstance = commands.get(correctedCommand);
                 }
                 else {
                     return; // Command not found
                 }
             }
             else {
-                commandInstance = framework.commands.get(command);
+                commandInstance = commands.get(command);
             }
+            debugger;
+            // Check if command is child of another command and remove parent commands from args
+            let loopArgs = Array.from(args);
+            let loopCommand = commandInstance;
+            while (loopCommand.subcommands.has(loopArgs[0])) {
+                loopCommand = loopCommand.subcommands.get(loopArgs[0]);
+                loopArgs.shift();
+            }
+            commandInstance = loopCommand;
+            console.log(commandInstance);
             if (message.guild == null && commandInstance.dm == false)
                 return;
             if (commandInstance.adminOnly || commandInstance.userPermissions.length > 0) {

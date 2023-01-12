@@ -8,9 +8,11 @@ export class TranslationManager {
 
     constructor() {}
 
-    get(key: string, language?: string, params?: any): string {
+    get(key: string, language?: string, params?: any, fallbackString?: string): string {
         if (this.translations.has(key)) {
             return this.translations.get(key).get(language, params);
+        } else if (fallbackString) {
+            return fallbackString;
         } else {
             return key;
         }
@@ -47,4 +49,28 @@ export class TranslationManager {
     getLanguages(): string[] {
         return this.languages;
     } 
+
+    getLanguagesDiscordFormat(): string[] {
+        return this.languages.map(l => {
+            switch(l) {
+                case 'en': return 'en-GB';
+                case 'es': return 'es-ES';
+                case 'pt': return 'pt-BR';
+                case 'sv': return 'sv-SE';
+                case 'zh': return 'zh-CN';
+                default: return l;
+            }
+        });
+    }
+
+    getLanguageDiscordFormat(language: string): string {
+        switch(language) {
+            case 'en': return 'en-GB';
+            case 'es': return 'es-ES';
+            case 'pt': return 'pt-BR';
+            case 'sv': return 'sv-SE';
+            case 'zh': return 'zh-CN';
+            default: return language;
+        }
+    }
 }

@@ -240,56 +240,98 @@ export class ZumitoFramework {
     }
     async refreshSlashCommands() {
         const rest = new REST({ version: '10' }).setToken(this.settings.discordClientOptions.token);
-        let commands = Array.from(this.commands.values())
+        let commands = [];
+        Array.from(this.commands.values())
             .filter((command) => command.type == CommandType.slash || command.type == CommandType.separated || command.type == CommandType.any)
-            .map((command) => {
-            let slashCommand = new SlashCommandBuilder()
-                .setName(command.name)
-                .setDescription(this.translations.get('command.' + command.name + '.description', 'en'));
-            if (command.args) {
-                command.args.forEach((arg) => {
-                    let method;
-                    switch (arg.type) {
-                        case 'string':
-                            method = 'addStringOption';
-                            break;
-                        case 'user':
-                        case 'member':
-                            method = 'addUserOption';
-                            break;
-                        case 'channel':
-                            method = 'addChannelOption';
-                            break;
-                        case 'role':
-                            method = 'addRoleOption';
-                            break;
-                        default:
-                            throw new Error('Invalid argument type ' + arg.type);
-                    }
-                    slashCommand[method]((option) => {
-                        option.setName(arg.name);
-                        option.setDescription(this.translations.get('command.' + command.name + '.args.' + arg.name + '.description', 'en'));
-                        option.setRequired(!arg.optional);
-                        if (arg.choices) {
-                            // if arg.choices is function, call it
-                            if (typeof arg.choices == 'function') {
-                                arg.choices = arg.choices();
-                            }
-                            arg.choices.forEach((choice) => {
-                                option.addChoices({
-                                    name: choice.name,
-                                    value: choice.value
-                                });
-                            });
-                        }
-                        return option;
-                    });
-                });
-            }
-            return slashCommand.toJSON();
+            .filter((command) => command.parentCommand == null)
+            .forEach((command) => {
+            commands.push(this.parseSlashCommandFromCommand(command).toJSON());
+            this.getChildCommands(command).forEach((childCommand) => {
+                commands.push(this.parseSlashCommandFromCommand(childCommand).toJSON());
+            });
         });
+        console.log(commands);
         const data = await rest.put(Routes.applicationCommands(this.settings.discordClientOptions.clientId), { body: commands });
         console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+    }
+    getChildCommands(command) {
+        // Iterate over all subcommands of the command and add them to the list
+        // Iterate over childs of childs
+        let childCommands = [];
+        command.subcommands.forEach((subcommand) => {
+            childCommands.push(subcommand);
+            childCommands = childCommands.concat(this.getChildCommands(subcommand));
+        });
+        return childCommands;
+    }
+    parseSlashCommandFromCommand(command, slashCommand) {
+        if (!slashCommand) {
+            slashCommand = new SlashCommandBuilder();
+        }
+        let descriptions = {};
+        this.translations.getLanguages().forEach((language) => {
+            descriptions[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.description', language, {}, 'No description yet');
+        });
+        console.log(descriptions);
+        slashCommand
+            .setName(command.name)
+            .setDescriptionLocalizations(descriptions);
+        if (command.args) {
+            command.args.forEach((arg) => {
+                let method;
+                switch (arg.type) {
+                    case 'string':
+                        method = 'addStringOption';
+                        break;
+                    case 'user':
+                    case 'member':
+                        method = 'addUserOption';
+                        break;
+                    case 'channel':
+                        method = 'addChannelOption';
+                        break;
+                    case 'role':
+                        method = 'addRoleOption';
+                        break;
+                    default:
+                        throw new Error('Invalid argument type ' + arg.type);
+                }
+                slashCommand[method]((option) => {
+                    let names = {};
+                    let descriptions = {};
+                    this.translations.getLanguages().forEach((language) => {
+                        names[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.arguments.' + arg.name + '.name', language, {}, arg.name);
+                        descriptions[this.translations.getLanguageDiscordFormat(language)] = this.translations.get('command.' + command.name + '.arguments.' + arg.name + '.description', language, {}, 'No description yet');
+                    });
+                    console.log(names);
+                    console.log(descriptions);
+                    option.setNameLocalizations(names);
+                    option.setDescriptionLocalizations(descriptions);
+                    option.setRequired(!arg.optional);
+                    if (arg.choices) {
+                        // if arg.choices is function, call it
+                        if (typeof arg.choices == 'function') {
+                            arg.choices = arg.choices();
+                        }
+                        arg.choices.forEach((choice) => {
+                            option.addChoices({
+                                name: choice.name,
+                                value: choice.value
+                            });
+                        });
+                    }
+                    return option;
+                });
+            });
+        }
+        if (slashCommand instanceof SlashCommandBuilder && command.subcommands.size > 0) {
+            command.subcommands.forEach((subcommand) => {
+                slashCommand.addSubcommand((subcommandBuilder) => {
+                    return this.parseSlashCommandFromCommand(subcommand, subcommandBuilder);
+                });
+            });
+        }
+        return slashCommand;
     }
 }
 function MergeRecursive(obj1, obj2) {

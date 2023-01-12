@@ -1,4 +1,4 @@
-import { GuildMember, TextChannel } from "discord.js";
+import { GuildMember, SlashCommandBuilder, SlashCommandSubcommandBuilder, TextChannel } from "discord.js";
 import { Command } from "./types/Command.js";
 import { FrameworkSettings } from "./types/FrameworkSettings.js";
 import { Module } from "./types/Module.js";
@@ -48,4 +48,6 @@ export declare class ZumitoFramework {
     memberHasPermission(member: GuildMember, channel: TextChannel, permission: bigint): Promise<boolean>;
     getGuildSettings(guildId: string): Promise<any>;
     refreshSlashCommands(): Promise<void>;
+    getChildCommands(command: Command): Command[];
+    parseSlashCommandFromCommand(command: Command, slashCommand?: SlashCommandBuilder | SlashCommandSubcommandBuilder): SlashCommandBuilder | SlashCommandSubcommandBuilder;
 }

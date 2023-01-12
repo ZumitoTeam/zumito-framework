@@ -4,7 +4,7 @@ export declare class TranslationManager {
     private defaultLanguage;
     private languages;
     constructor();
-    get(key: string, language?: string, params?: any): string;
+    get(key: string, language?: string, params?: any, fallbackString?: string): string;
     set(key: string, language: string, text: string): void;
     has(key: string): boolean;
     getAll(): Map<string, Translation>;
@@ -12,4 +12,6 @@ export declare class TranslationManager {
     getDefaultLanguage(): string;
     setDefaultLanguage(language: string): void;
     getLanguages(): string[];
+    getLanguagesDiscordFormat(): string[];
+    getLanguageDiscordFormat(language: string): string;
 }

@@ -4,9 +4,12 @@ export class TranslationManager {
     defaultLanguage = 'en';
     languages = [];
     constructor() { }
-    get(key, language, params) {
+    get(key, language, params, fallbackString) {
         if (this.translations.has(key)) {
             return this.translations.get(key).get(language, params);
+        }
+        else if (fallbackString) {
+            return fallbackString;
         }
         else {
             return key;
@@ -37,5 +40,27 @@ export class TranslationManager {
     }
     getLanguages() {
         return this.languages;
+    }
+    getLanguagesDiscordFormat() {
+        return this.languages.map(l => {
+            switch (l) {
+                case 'en': return 'en-GB';
+                case 'es': return 'es-ES';
+                case 'pt': return 'pt-BR';
+                case 'sv': return 'sv-SE';
+                case 'zh': return 'zh-CN';
+                default: return l;
+            }
+        });
+    }
+    getLanguageDiscordFormat(language) {
+        switch (language) {
+            case 'en': return 'en-GB';
+            case 'es': return 'es-ES';
+            case 'pt': return 'pt-BR';
+            case 'sv': return 'sv-SE';
+            case 'zh': return 'zh-CN';
+            default: return language;
+        }
     }
 }

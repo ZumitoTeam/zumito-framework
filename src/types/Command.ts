@@ -1,4 +1,5 @@
 import { PermissionFlagsBits, SystemChannelFlagsBitField } from "discord.js";
+import { ZumitoFramework } from "../ZumitoFramework.js";
 
 import { CommandArgDefinition } from "./CommandArgDefinition.js";
 import { CommandParameters } from "./CommandParameters.js";
@@ -21,6 +22,8 @@ export abstract class Command {
     dm: boolean = false;
     args: CommandArgDefinition[] = [];
     type: string = CommandType.prefix;
+    subcommands: Map<string, Command> = new Map();
+    parentCommand: Command | string | null = null;
     
     constructor() {
 
@@ -37,5 +40,24 @@ export abstract class Command {
     }
 
     abstract selectMenu({path, interaction, client, framework, trans}: SelectMenuParameters): void;
+
+    getParentCommand(): Command | null {
+        if (this.parentCommand === null) return null;
+        if (typeof this.parentCommand === "string") return null;
+        return this.parentCommand;
+    }
+
+    setParentCommand(command: Command) {
+        this.parentCommand = command;
+    }
+
+    updateParentCommand(commands: Map<string, Command>) {
+        if (typeof this.parentCommand !== "string") return;
+        if (commands.has(this.parentCommand)) {
+            this.parentCommand = commands.get(this.parentCommand);
+        }
+    }
+
+    
 
 }
