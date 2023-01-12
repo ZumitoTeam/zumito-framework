@@ -10,7 +10,7 @@ import boxen from "boxen";
 
 import * as fs from 'fs';
 import path from 'path';
-import { CommandInteraction, SelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, CommandInteraction, SelectMenuInteraction } from "discord.js";
 
 
 export abstract class Module {
@@ -147,7 +147,7 @@ export abstract class Module {
         args.forEach(arg => {
             finalArgs[arg.constructor.name.toLowerCase()] = arg;
         });
-        let interaction = args.find((arg: any) => arg instanceof SelectMenuInteraction || arg instanceof CommandInteraction);
+        let interaction = args.find((arg: any) => arg instanceof SelectMenuInteraction || arg instanceof CommandInteraction || arg instanceof ButtonInteraction);
         if (interaction) {
             finalArgs['interaction'] = interaction;
         }
