@@ -32,37 +32,81 @@ import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
 
 /**
  * @class ZumitoFramework
- * @classdesc The main class of the framework.
- *
- * @property {FrameworkSettings} settings - The settings for the framework.
- * @property {Client} client - The discord client instance.
- * @property {Map<string, Module>} modules - The modules loaded in the framework.
- * @property {Map<string, Command>} commands - The commands loaded in the framework.
- * @property {Map<string, FrameworkEvent>} events - The events loaded in the framework.
- * @property {TranslationManager} translations - The Translation Manager for the framework.
- * @property {Map<string, any>} models - The database models loaded in the framework.
- * @property {mongoose.Connection} database - The connection to the MongoDB database.
- * @property {express.Application} app - The ExpressJS application for the API server.
+ * @description The main class of the framework.
  * @example
  *  new ZumitoFramework({
- *     prefix: '!',
  *     discordClientOptions: {
- *        token: 'token',
- *        clientId: 'clientId',
- *       intents: 0
- *    }
+ *          intents: 3276799,
+ *          token: 'XXXXXXXXXXXXXXXXX.XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
+ *          clientId: 755XXXXXXXXXX98,
+ *      },
+ *      defaultPrefix: process.env.BOTPREFIX || "z-",
+ *      mongoQueryString: mongodb://XXXXXX,
+ *      logLevel: parseInt(process.env.LOGLEVEL || "3"),
  * });
  */
 export class ZumitoFramework {
+    /**
+     * The discord client instance.
+     * @type {Client}
+     * @private
+     * @see {@link https://discord.js.org/#/docs/main/stable/class/Client}
+     */
     client: Client;
+    /**
+     * The settings for the framework.
+     * @type {FrameworkSettings}
+     * @private
+     */
     settings: FrameworkSettings;
+    /**
+     * The modules loaded in the framework.
+     * @type {Map<string, Module>}
+     * @private
+     */
     modules: Map<string, Module>;
+    /**
+     * The commands loaded in the framework.
+     * @type {Map<string, Command>}
+     * @private
+     * @see {@link Command}
+     */
     commands: Map<string, Command>;
+    /**
+     * The events loaded in the framework.
+     * @type {Map<string, FrameworkEvent>}
+     * @private
+     * @see {@link FrameworkEvent}
+     */
     events: Map<string, FrameworkEvent>;
+    /**
+     * The Translation Manager for the framework.
+     * @type {TranslationManager}
+     * @private
+     * @see {@link TranslationManager}
+     */
     translations: TranslationManager;
     routes: any;
+    /**
+     * The database models loaded in the framework.
+     * @type {Map<string, any>}
+     * @private
+     * @see {@link https://mongoosejs.com/docs/models.html}
+     */
     models: any;
+    /**
+     * The connection to the MongoDB database.
+     * @type {mongoose.Connection}
+     * @private
+     * @see {@link https://mongoosejs.com/docs/api/connection.html}
+     */
     database: any;
+    /**
+     * The ExpressJS app instance.
+     * @type {express.Application}
+     * @private
+     * @see {@link https://expressjs.com/en/4x/api.html#app}
+     */
     app: any;
 
     /**
