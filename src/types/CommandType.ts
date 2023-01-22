@@ -3,4 +3,4 @@ export const CommandType = {
     slash: 'slash',
     separated: 'separated',
     any: 'any',
-}
+};

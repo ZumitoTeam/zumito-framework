@@ -1,4 +1,4 @@
-import { Client, Emoji } from "discord.js";
+import { Client, Emoji } from 'discord.js';
 
 export class EmojiManager {
     /**
@@ -7,7 +7,6 @@ export class EmojiManager {
     client: Client;
     emojiFallbacks: Map<string, string> = new Map();
 
-    
     constructor(client: Client) {
         this.client = client;
     }
@@ -28,10 +27,8 @@ export class EmojiManager {
             throw new Error(`Emoji ${name} not found.`);
         }
     }
-    
+
     registerEmojiFallback(id: string, fallback: string) {
         this.emojiFallbacks.set(id, fallback);
     }
-
-    
 }

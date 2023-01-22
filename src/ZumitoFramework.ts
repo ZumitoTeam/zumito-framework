@@ -1,42 +1,48 @@
-import { Channel, GuildMember, Message, PermissionsBitField, SlashCommandBuilder, TextChannel } from "discord.js";
-import { CommandArguments } from "./types/CommandArguments.js";
-import { Command } from "./types/Command.js";
-import { FrameworkSettings } from "./types/FrameworkSettings.js";
-import { Module } from "./types/Module.js";
+import {
+    Channel,
+    GuildMember,
+    Message,
+    PermissionsBitField,
+    SlashCommandBuilder,
+    TextChannel,
+} from 'discord.js';
+import { CommandArguments } from './types/CommandArguments.js';
+import { Command } from './types/Command.js';
+import { FrameworkSettings } from './types/FrameworkSettings.js';
+import { Module } from './types/Module.js';
 import { ApiResponse } from './definitions/ApiResponse.js';
-import { FrameworkEvent } from "./types/FrameworkEvent.js";
-import { baseModule } from "./baseModule/index.js";
-import { TranslationManager } from "./TranslationManager.js";
+import { FrameworkEvent } from './types/FrameworkEvent.js';
+import { baseModule } from './baseModule/index.js';
+import { TranslationManager } from './TranslationManager.js';
 
 import express from 'express';
 import * as fs from 'fs';
 import path from 'path';
-import { Collection, Client } from "discord.js";
+import { Collection, Client } from 'discord.js';
 // import better-logging
-import { betterLogging } from "better-logging";
+import { betterLogging } from 'better-logging';
 betterLogging(console);
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import http from 'http';
 import * as url from 'url';
-import { CommandType } from "./types/CommandType.js";
-import { CommandArgDefinition } from "./types/CommandArgDefinition.js";
-import { CommandChoiceDefinition } from "./types/CommandChoiceDefinition.js";
+import { CommandType } from './types/CommandType.js';
+import { CommandArgDefinition } from './types/CommandArgDefinition.js';
+import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
 
 /**
  * @class ZumitoFramework
  * @classdesc The main class of the framework.
- * 
+ *
  * @property {FrameworkSettings} settings - The settings of the framework.
  * @property {Client} client - The client client instance.
  * @property {Collection<string, Module>} modules - The modules loaded in the framework.
  * @property {Collection<string, Command>} commands - The commands loaded in the framework.
- */  
+ */
 export class ZumitoFramework {
-
     client: any;
     settings: FrameworkSettings;
     modules: Map<string, Module>;
@@ -47,7 +53,6 @@ export class ZumitoFramework {
     models: any;
     database: any;
     app: any;
-    
 
     /**
      * @constructor
@@ -75,24 +80,26 @@ export class ZumitoFramework {
             console.logLevel = settings.logLevel;
         }
 
-        this.initialize().then(() => {
-            if (callback) callback(this);
-        }).catch(err => {
-            console.error(err, err.message, err.stack, err.name);
-        });
+        this.initialize()
+            .then(() => {
+                if (callback) callback(this);
+            })
+            .catch((err) => {
+                console.error(err, err.message, err.stack, err.name);
+            });
     }
 
     async initialize() {
         try {
             await mongoose.connect(this.settings.mongoQueryString);
         } catch (err) {
-            console.error("[🗄️🔴] Database connection error:", err.message);
+            console.error('[🗄️🔴] Database connection error:', err.message);
             process.exit(1);
         } finally {
             this.database = mongoose.connection;
             console.log('[🗄️🟢] Database connection successful');
         }
-        
+
         this.initializeDiscordClient();
         this.startApiServer();
 
@@ -103,10 +110,10 @@ export class ZumitoFramework {
     startApiServer() {
         this.app = express();
 
-        let port = process.env.PORT || '80';
+        const port = process.env.PORT || '80';
         this.app.set('port', port);
 
-        var server = http.createServer(this.app);
+        const server = http.createServer(this.app);
         server.listen(port);
         server.on('error', (err) => {
             console.log('[🌐🔴] Error starting API web server: ' + err);
@@ -128,13 +135,13 @@ export class ZumitoFramework {
         //this.app.use("/api/", apiRouter);
 
         // throw 404 if URL not found
-        this.app.all("*", function(req, res) {
-            return ApiResponse.notFoundResponse(res, "Page not found");
+        this.app.all('*', function (req, res) {
+            return ApiResponse.notFoundResponse(res, 'Page not found');
         });
 
         this.app.use(function (err, req, res) {
             if (err.name === 'UnauthorizedError') {
-                return ApiResponse.unauthorizedResponse(res, "Invalid token");
+                return ApiResponse.unauthorizedResponse(res, 'Invalid token');
             }
         });
     }
@@ -149,9 +156,9 @@ export class ZumitoFramework {
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         await this.registerModule(__dirname, 'baseModule', baseModule);
-        let files = fs.readdirSync(modulesFolder);
-        for(let file of files) {
-           await this.registerModule(modulesFolder, file);
+        const files = fs.readdirSync(modulesFolder);
+        for (const file of files) {
+            await this.registerModule(modulesFolder, file);
         }
 
         this.models.forEach((modelDefinition, modelName) => {
@@ -162,24 +169,40 @@ export class ZumitoFramework {
 
     private async registerModule(modulesFolder, moduleName, module?: any) {
         if (!module) {
-            if (fs.existsSync(path.join(modulesFolder, moduleName, 'index.js'))) {
-                module = await import(path.join(modulesFolder, moduleName, 'index.js'));
+            if (
+                fs.existsSync(path.join(modulesFolder, moduleName, 'index.js'))
+            ) {
+                module = await import(
+                    path.join(modulesFolder, moduleName, 'index.js')
+                );
                 module = Object.values(module)[0];
-            } else if (fs.existsSync(path.join(modulesFolder, moduleName, 'index.ts'))) {
-                module = await import(path.join(modulesFolder, moduleName, 'index.ts'));
+            } else if (
+                fs.existsSync(path.join(modulesFolder, moduleName, 'index.ts'))
+            ) {
+                module = await import(
+                    path.join(modulesFolder, moduleName, 'index.ts')
+                );
                 module = Object.values(module)[0];
             } else {
                 module = Module;
-            };
+            }
         }
         // Create module instance
-        let moduleInstance: Module
+        let moduleInstance: Module;
         try {
-            moduleInstance = new module(path.join(modulesFolder, moduleName), this);
+            moduleInstance = new module(
+                path.join(modulesFolder, moduleName),
+                this
+            );
             await moduleInstance.initialize();
-            this.modules.set(moduleName || moduleInstance.constructor.name, moduleInstance);
+            this.modules.set(
+                moduleName || moduleInstance.constructor.name,
+                moduleInstance
+            );
         } catch (err) {
-            console.error(`[📦🔴] Error loading module ${moduleName}: ${err.message}`);
+            console.error(
+                `[📦🔴] Error loading module ${moduleName}: ${err.message}`
+            );
             console.error(err.stack);
         }
 
@@ -189,7 +212,10 @@ export class ZumitoFramework {
                 this.commands.set(command.name, command);
             });
         }
-        this.commands = new Map([...this.commands, ...moduleInstance.getCommands()]);
+        this.commands = new Map([
+            ...this.commands,
+            ...moduleInstance.getCommands(),
+        ]);
 
         // Register module events
         this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
@@ -199,7 +225,10 @@ export class ZumitoFramework {
             if (!this.models.has(modelName)) {
                 this.models.set(modelName, modelDefinition);
             } else {
-                this.models.set(modelName, MergeRecursive(this.models.get(modelName), modelDefinition));
+                this.models.set(
+                    modelName,
+                    MergeRecursive(this.models.get(modelName), modelDefinition)
+                );
             }
         });
 
@@ -209,13 +238,11 @@ export class ZumitoFramework {
         this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
 
         */
-
-
     }
 
     private initializeDiscordClient() {
         this.client = new Client({
-            intents: this.settings.discordClientOptions.intents
+            intents: this.settings.discordClientOptions.intents,
         });
         this.client.login(this.settings.discordClientOptions.token);
         this.client.on('ready', () => {
@@ -224,41 +251,45 @@ export class ZumitoFramework {
         });
     }
 
-    public static splitCommandLine( commandLine ) {
-
+    public static splitCommandLine(commandLine) {
         //log( 'commandLine', commandLine ) ;
-    
+
         //  Find a unique marker for the space character.
         //  Start with '<SP>' and repeatedly append '@' if necessary to make it unique.
-        var spaceMarker = '<SP>' ;
-        while( commandLine.indexOf( spaceMarker ) > -1 ) spaceMarker += '@' ;
-    
+        let spaceMarker = '<SP>';
+        while (commandLine.indexOf(spaceMarker) > -1) spaceMarker += '@';
+
         //  Protect double-quoted strings.
         //   o  Find strings of non-double-quotes, wrapped in double-quotes.
         //   o  The final double-quote is optional to allow for an unterminated string.
         //   o  Replace each double-quoted-string with what's inside the qouble-quotes,
         //      after each space character has been replaced with the space-marker above.
         //   o  The outer double-quotes will not be present.
-        var noSpacesInQuotes = commandLine.replace( /"([^"]*)"?/g, ( fullMatch, capture ) => {
-            return capture.replace( / /g, spaceMarker ) ;
-        }) ;
-    
-    
+        const noSpacesInQuotes = commandLine.replace(
+            /"([^"]*)"?/g,
+            (fullMatch, capture) => {
+                return capture.replace(/ /g, spaceMarker);
+            }
+        );
+
         //  Now that it is safe to do so, split the command-line at one-or-more spaces.
-        var mangledParamArray = noSpacesInQuotes.split( / +/ ) ;
-    
-    
+        const mangledParamArray = noSpacesInQuotes.split(/ +/);
+
         //  Create a new array by restoring spaces from any space-markers.
-        var paramArray = mangledParamArray.map( ( mangledParam ) => {
-            return mangledParam.replace( RegExp( spaceMarker, 'g' ), ' ' ) ;
+        const paramArray = mangledParamArray.map((mangledParam) => {
+            return mangledParam.replace(RegExp(spaceMarker, 'g'), ' ');
         });
-    
-    
-        return paramArray ;
+
+        return paramArray;
     }
 
-    async memberHasPermission(member: GuildMember, channel: TextChannel, permission: bigint) {
-        let memberPermission: PermissionsBitField = await channel.permissionsFor(member);
+    async memberHasPermission(
+        member: GuildMember,
+        channel: TextChannel,
+        permission: bigint
+    ) {
+        const memberPermission: PermissionsBitField =
+            await channel.permissionsFor(member);
         return memberPermission.has(permission);
     }
 
@@ -275,13 +306,25 @@ export class ZumitoFramework {
     }
 
     async refreshSlashCommands() {
-        const rest = new REST({ version: '10' }).setToken(this.settings.discordClientOptions.token);
-        let commands = Array.from(this.commands.values())
-            .filter((command: Command) => command.type == CommandType.slash || command.type == CommandType.separated || command.type == CommandType.any)
+        const rest = new REST({ version: '10' }).setToken(
+            this.settings.discordClientOptions.token
+        );
+        const commands = Array.from(this.commands.values())
+            .filter(
+                (command: Command) =>
+                    command.type == CommandType.slash ||
+                    command.type == CommandType.separated ||
+                    command.type == CommandType.any
+            )
             .map((command: Command) => {
-                let slashCommand = new SlashCommandBuilder()
+                const slashCommand = new SlashCommandBuilder()
                     .setName(command.name)
-                    .setDescription(this.translations.get('command.' + command.name + '.description', 'en'));
+                    .setDescription(
+                        this.translations.get(
+                            'command.' + command.name + '.description',
+                            'en'
+                        )
+                    );
                 if (command.args) {
                     command.args.forEach((arg: CommandArgDefinition) => {
                         let method;
@@ -300,21 +343,33 @@ export class ZumitoFramework {
                                 method = 'addRoleOption';
                                 break;
                             default:
-                                throw new Error('Invalid argument type ' + arg.type);
+                                throw new Error(
+                                    'Invalid argument type ' + arg.type
+                                );
                         }
                         slashCommand[method]((option) => {
                             option.setName(arg.name);
-                            option.setDescription(this.translations.get('command.' + command.name + '.args.' + arg.name + '.description', 'en'));
+                            option.setDescription(
+                                this.translations.get(
+                                    'command.' +
+                                        command.name +
+                                        '.args.' +
+                                        arg.name +
+                                        '.description',
+                                    'en'
+                                )
+                            );
                             option.setRequired(!arg.optional);
                             if (arg.choices) {
                                 // if arg.choices is function, call it
                                 if (typeof arg.choices == 'function') {
-                                    arg.choices = arg.choices() as CommandChoiceDefinition[];
+                                    arg.choices =
+                                        arg.choices() as CommandChoiceDefinition[];
                                 }
                                 arg.choices.forEach((choice) => {
                                     option.addChoices({
                                         name: choice.name,
-                                        value: choice.value
+                                        value: choice.value,
                                     });
                                 });
                             }
@@ -325,32 +380,31 @@ export class ZumitoFramework {
                 return slashCommand.toJSON();
             });
         const data: any = await rest.put(
-            Routes.applicationCommands(this.settings.discordClientOptions.clientId),
-            { body: commands },
+            Routes.applicationCommands(
+                this.settings.discordClientOptions.clientId
+            ),
+            { body: commands }
         );
-        console.debug(`Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`);
+        console.debug(
+            `Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`
+        );
     }
 }
 
 function MergeRecursive(obj1, obj2) {
-
-    for (var p in obj2) {
-      try {
-        // Property in destination object set; update its value.
-        if ( obj2[p].constructor==Object ) {
-          obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-  
-        } else {
-          obj1[p] = obj2[p];
-  
+    for (const p in obj2) {
+        try {
+            // Property in destination object set; update its value.
+            if (obj2[p].constructor == Object) {
+                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
+            } else {
+                obj1[p] = obj2[p];
+            }
+        } catch (e) {
+            // Property in destination object not set; create it and set its value.
+            obj1[p] = obj2[p];
         }
-  
-      } catch(e) {
-        // Property in destination object not set; create it and set its value.
-        obj1[p] = obj2[p];
-  
-      }
     }
-  
+
     return obj1;
 }
