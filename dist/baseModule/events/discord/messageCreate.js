@@ -213,7 +213,7 @@ export class MessageCreate extends FrameworkEvent {
             });
         }
         const body = `\n\n\n---\nComand:\`\`\`${error.command.name || 'not defined'}\`\`\`\nArguments:\`\`\`${error.args.toString() || 'none'}\`\`\`\nError:\`\`\`${error.name || 'not defined'}\`\`\`\nError message:\`\`\`${error.message || 'not defined'}\`\`\`\n`;
-        const requestUrl = `https://github.com/fernandomema/Zumito/issues/new?body=${encodeURIComponent(body)}`;
+        const requestUrl = `https://github.com/ZumitoTeam/Zumito/issues/new?body=${encodeURIComponent(body)}`;
         const row = new ActionRowBuilder()
             .addComponents(new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
