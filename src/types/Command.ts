@@ -1,5 +1,3 @@
-import { PermissionFlagsBits, SystemChannelFlagsBitField } from 'discord.js';
-
 import { CommandArgDefinition } from './CommandArgDefinition.js';
 import { CommandParameters } from './CommandParameters.js';
 import { CommandType } from './CommandType.js';

@@ -9,7 +9,7 @@ export class Module {
     framework;
     commands = new Map();
     events = new Map();
-    models = new Map();
+    models = [];
     constructor(path, framework) {
         this.path = path;
         this.framework = framework;
@@ -19,8 +19,6 @@ export class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
-        // console.error('[🔄🔴 ] Error initializing module ' + this.constructor.name);
-        // console.log(boxen(e + '\n' + e.stack, { padding: 1 }));
     }
     async registerCommands() {
         if (fs.existsSync(path.join(this.path, 'commands'))) {
@@ -218,18 +216,14 @@ export class Module {
             return;
         const files = fs.readdirSync(path.join(this.path, 'models'));
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const modelName = file.slice(0, -5).charAt(0).toUpperCase() +
-                    file.slice(0, -5).slice(1);
-                const modelDefiniton = await import('file://' + `${this.path}/models/${file}`, {
-                    assert: {
-                        type: 'json',
-                    },
-                }).catch((e) => {
-                    console.error(`[🔄🔴 ] Error loading model ${modelName} on module ${this.constructor.name}`);
-                    console.error(e, e.name, e.stack);
+            if (file.endsWith('.ts') || file.endsWith('.js')) {
+                let model = await import('file://' + `${this.path}/models/${file}`).catch((e) => {
+                    console.error(`[🔄🔴 ] Error loading ${file.slice(0, -3)} model on module ${this.constructor.name}`);
+                    console.error(e + '\n' + e.name + '\n' + e.stack);
                 });
-                this.models.set(modelName, modelDefiniton.default);
+                model = Object.values(model)[0];
+                model = new model();
+                this.models.push(model);
             }
         }
     }

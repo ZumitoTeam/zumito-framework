@@ -11,6 +11,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
+    "build-watch": "tsc -w",
     "lint": "eslint .",
     "publish-npm": "npm publish",
     "docs": "typedoc --out docs src"
@@ -22,6 +23,7 @@
     "autocorrect": "^1.2.0",
     "better-logging": "^5.0.0",
     "boxen": "^7.0.0",
+    "canario": "^1.0.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "cookie-parser": "^1.4.6",
@@ -30,7 +32,8 @@
     "error-stack-parser": "^2.1.4",
     "express": "^4.18.1",
     "leven": "^4.0.0",
-    "mongoose": "^6.6.5"
+    "mongoose": "^6.6.5",
+    "tingodb": "^0.6.1"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",

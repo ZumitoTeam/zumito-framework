@@ -1,5 +1,5 @@
-import { ButtonPressedParams } from './ButtonPressedParams';
+import { ButtonPressedParams } from './ButtonPressedParams.js';
 
 export abstract class ButtonPressed {
-    abstract buttonPressed({}: ButtonPressedParams): void;
+    abstract buttonPressed(buttonPressedParams: ButtonPressedParams): void;
 }

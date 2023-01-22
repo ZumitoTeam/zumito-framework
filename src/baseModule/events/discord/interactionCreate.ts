@@ -71,8 +71,8 @@ export class InteractionCreate extends FrameworkEvent {
                 return;
             const trans = this.getTransMethod(
                 commandInstance,
-                guildSettings,
-                framework
+                framework,
+                guildSettings
             );
             if (
                 commandInstance.type === CommandType.separated ||
