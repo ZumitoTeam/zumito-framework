@@ -1,5 +1,5 @@
-import { ButtonInteraction, Client } from "discord.js";
-import { ZumitoFramework } from "../../ZumitoFramework";
+import { ButtonInteraction, Client } from 'discord.js';
+import { ZumitoFramework } from '../../ZumitoFramework';
 export interface ButtonPressedParams {
     path: string[];
     interaction: ButtonInteraction;

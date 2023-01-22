@@ -1,4 +1,4 @@
-import { Client } from "discord.js";
+import { Client } from 'discord.js';
 export declare class EmojiManager {
     /**
      * @param {Client} client - The client client instance.

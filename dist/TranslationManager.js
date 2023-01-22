@@ -1,4 +1,4 @@
-import { Translation } from "./types/Translation.js";
+import { Translation } from './types/Translation.js';
 export class TranslationManager {
     translations = new Map();
     defaultLanguage = 'en';

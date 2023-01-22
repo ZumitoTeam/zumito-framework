@@ -1,6 +1,6 @@
-import { ZumitoFramework } from "../ZumitoFramework.js";
-import { Command } from "./Command.js";
-import { FrameworkEvent } from "./FrameworkEvent.js";
+import { ZumitoFramework } from '../ZumitoFramework.js';
+import { Command } from './Command.js';
+import { FrameworkEvent } from './FrameworkEvent.js';
 export declare abstract class Module {
     protected path: string;
     protected framework: ZumitoFramework;

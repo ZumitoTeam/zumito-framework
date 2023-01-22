@@ -1,4 +1,4 @@
-import { Translation } from "./types/Translation.js";
+import { Translation } from './types/Translation.js';
 export declare class TranslationManager {
     private translations;
     private defaultLanguage;

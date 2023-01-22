@@ -1,22 +1,22 @@
 import * as url from 'url';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField } from "discord.js";
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, } from 'discord.js';
 import ErrorStackParser from 'error-stack-parser';
-import { FrameworkEvent } from "../../../types/FrameworkEvent.js";
-import { ZumitoFramework } from "../../../ZumitoFramework.js";
+import { FrameworkEvent } from '../../../types/FrameworkEvent.js';
+import { ZumitoFramework } from '../../../ZumitoFramework.js';
 import leven from 'leven';
-import path from "path";
+import path from 'path';
 export class MessageCreate extends FrameworkEvent {
     once = false;
     async execute({ message, client, framework }) {
-        let channel = message.channel;
-        let prefix = framework.settings.defaultPrefix;
+        const channel = message.channel;
+        const prefix = framework.settings.defaultPrefix;
         const args = ZumitoFramework.splitCommandLine(message.content.slice(prefix.length));
         const command = args.shift().toLowerCase();
         let commandInstance;
         if (message.content.startsWith(prefix)) {
             if (!framework.commands.has(command)) {
-                let commandNames = Array.from(framework.commands.keys());
-                var correctedCommand = this.autocorrect(command, commandNames);
+                const commandNames = Array.from(framework.commands.keys());
+                const correctedCommand = this.autocorrect(command, commandNames);
                 if (framework.commands.has(correctedCommand)) {
                     commandInstance = framework.commands.get(correctedCommand);
                 }
@@ -29,11 +29,13 @@ export class MessageCreate extends FrameworkEvent {
             }
             if (message.guild == null && commandInstance.dm == false)
                 return;
-            if (commandInstance.adminOnly || commandInstance.userPermissions.length > 0) {
+            if (commandInstance.adminOnly ||
+                commandInstance.userPermissions.length > 0) {
                 let denied = false;
-                if (framework.memberHasPermission(message.member, message.channel, PermissionsBitField.Flags.Administrator) || message.member.id != message.guild.ownerId) {
+                if (framework.memberHasPermission(message.member, message.channel, PermissionsBitField.Flags.Administrator) ||
+                    message.member.id != message.guild.ownerId) {
                     if (commandInstance.userPermissions.length > 0) {
-                        commandInstance.userPermissions.forEach(permission => {
+                        commandInstance.userPermissions.forEach((permission) => {
                             if (!framework.memberHasPermission(message.member, message.channel, permission)) {
                                 denied = true;
                             }
@@ -45,29 +47,34 @@ export class MessageCreate extends FrameworkEvent {
                         content: 'You do not have permission to use this command.',
                         allowedMentions: {
                             repliedUser: false,
-                        }
+                        },
                     });
                 }
             }
             if (message.channel.isTextBased) {
-                let channel = message.channel;
+                const channel = message.channel;
                 // Check command is nsfw and if channel is allowed
-                if (commandInstance.nsfw && !channel.nsfw && !channel.permissionsFor(message.member).has(PermissionsBitField.Flags.Administrator) && message.member.id != message.guild.ownerId) {
+                if (commandInstance.nsfw &&
+                    !channel.nsfw &&
+                    !channel
+                        .permissionsFor(message.member)
+                        .has(PermissionsBitField.Flags.Administrator) &&
+                    message.member.id != message.guild.ownerId) {
                     return message.reply({
                         content: 'This command is nsfw and this channel is not nsfw.',
                         allowedMentions: {
                             repliedUser: false,
-                        }
+                        },
                     });
                 }
             }
             try {
-                let guildSettings = await framework.getGuildSettings(message.guildId);
-                let parsedArgs = new Map();
-                let userMentionCount = 0;
+                const guildSettings = await framework.getGuildSettings(message.guildId);
+                const parsedArgs = new Map();
+                const userMentionCount = 0;
                 for (let i = 0; i < args.length; i++) {
-                    let arg = args[i];
-                    let type = commandInstance.args[i]?.type;
+                    const arg = args[i];
+                    const type = commandInstance.args[i]?.type;
                     if (type) {
                         if (type == 'member' || type == 'user') {
                             const member = await message.guild.members.cache.get(arg.replace(/[<@!>]/g, ''));
@@ -84,7 +91,7 @@ export class MessageCreate extends FrameworkEvent {
                                     content: 'Invalid user.',
                                     allowedMentions: {
                                         repliedUser: false,
-                                    }
+                                    },
                                 });
                             }
                         }
@@ -106,14 +113,15 @@ export class MessageCreate extends FrameworkEvent {
                         else {
                             return framework.translations.get('command.' + commandInstance.name + '.' + key, guildSettings.lang, params);
                         }
-                    }
+                    },
                 });
-                if (!message.channel.isDMBased && !message.deletable && (false)) { // false = settings.deleteCommands
+                if (!message.channel.isDMBased && !message.deletable && false) {
+                    // false = settings.deleteCommands
                     try {
                         message.delete().catch(function () {
-                            console.error('can\'t delete user command');
+                            console.error("can't delete user command");
                         });
-                        const metadata = await fetch('https://tulipo.ga/api/last_command/' + command).then(res => res.json());
+                        const metadata = await fetch('https://tulipo.ga/api/last_command/' + command).then((res) => res.json());
                     }
                     catch (err) {
                         console.error(err.name, err.message);
@@ -121,7 +129,7 @@ export class MessageCreate extends FrameworkEvent {
                 }
             }
             catch (error) {
-                let content = await this.getErrorEmbed({
+                const content = await this.getErrorEmbed({
                     name: error.name,
                     message: error.message,
                     command: commandInstance,
@@ -138,9 +146,9 @@ export class MessageCreate extends FrameworkEvent {
         }
     }
     autocorrect(str, words) {
-        var distance, bestWord, i, word, min;
-        var dictionary = words || [];
-        var len = dictionary.length;
+        let distance, bestWord, i, word, min;
+        const dictionary = words || [];
+        const len = dictionary.length;
         for (i = 0; i < len; i++) {
             word = dictionary[i];
             distance = leven(str, word);
@@ -162,60 +170,77 @@ export class MessageCreate extends FrameworkEvent {
         else {
             parsedError = error;
         }
-        let embed = new EmbedBuilder()
+        const embed = new EmbedBuilder()
             .setTitle('Error')
             .setDescription('An error has occured while executing this command.')
             .setTimestamp()
-            .addFields([{
+            .addFields([
+            {
                 name: 'Command:',
-                value: (error.command.name || 'Not defined')
-            }])
-            .addFields([{
+                value: error.command.name || 'Not defined',
+            },
+        ])
+            .addFields([
+            {
                 name: 'Arguments:',
-                value: (error.args.toString() || 'None')
-            }])
-            .addFields([{
+                value: error.args.toString() || 'None',
+            },
+        ])
+            .addFields([
+            {
                 name: 'Error name:',
-                value: (error.name || 'Not defined')
-            }])
-            .addFields([{
+                value: error.name || 'Not defined',
+            },
+        ])
+            .addFields([
+            {
                 name: 'Error message:',
-                value: (error.message || 'Not defined')
-            }]);
+                value: error.message || 'Not defined',
+            },
+        ]);
         if (error.possibleSolutions !== undefined) {
             error.possibleSolutions.forEach((solution) => {
-                embed.addFields([{
+                embed.addFields([
+                    {
                         name: 'Posible solution:',
-                        value: solution
-                    }]);
+                        value: solution,
+                    },
+                ]);
             });
         }
-        let stackFrames = ErrorStackParser.parse(error).filter(e => !e.fileName.includes('node_modules') && !e.fileName.includes('node:internal'));
+        const stackFrames = ErrorStackParser.parse(error).filter((e) => !e.fileName.includes('node_modules') &&
+            !e.fileName.includes('node:internal'));
         let stack = '';
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-        let path1 = path.resolve('./');
-        let path2 = path1.replaceAll('\\', '/');
+        const path1 = path.resolve('./');
+        const path2 = path1.replaceAll('\\', '/');
         stackFrames.forEach((frame) => {
-            stack += `[${frame.fileName.replace(path1, '').replace(path2, '').replace('file://', '')}:${frame.lineNumber}](https://zumito.ga/redirect?url=vscode://file/${frame.fileName.replace('file://', '')}:${frame.lineNumber}) ${frame.functionName}()\n`;
+            stack += `[${frame.fileName
+                .replace(path1, '')
+                .replace(path2, '')
+                .replace('file://', '')}:${frame.lineNumber}](https://zumito.ga/redirect?url=vscode://file/${frame.fileName.replace('file://', '')}:${frame.lineNumber}) ${frame.functionName}()\n`;
         });
         if (error.stack !== undefined) {
-            embed.addFields([{
+            embed.addFields([
+                {
                     name: 'Call stack:',
-                    value: stack || error.stack || error.stack.toString()
-                }]);
+                    value: stack || error.stack || error.stack.toString(),
+                },
+            ]);
         }
         if (error.details !== undefined) {
             error.details.forEach((detail) => {
-                embed.addFields([{
+                embed.addFields([
+                    {
                         name: 'Detail:',
-                        value: detail
-                    }]);
+                        value: detail,
+                    },
+                ]);
             });
         }
         const body = `\n\n\n---\nComand:\`\`\`${error.command.name || 'not defined'}\`\`\`\nArguments:\`\`\`${error.args.toString() || 'none'}\`\`\`\nError:\`\`\`${error.name || 'not defined'}\`\`\`\nError message:\`\`\`${error.message || 'not defined'}\`\`\`\n`;
         const requestUrl = `https://github.com/ZumitoTeam/Zumito/issues/new?body=${encodeURIComponent(body)}`;
-        const row = new ActionRowBuilder()
-            .addComponents(new ButtonBuilder()
+        const row = new ActionRowBuilder().addComponents(new ButtonBuilder()
             .setStyle(ButtonStyle.Link)
             .setLabel('Report error')
             .setEmoji('975645505302437978')
@@ -224,17 +249,19 @@ export class MessageCreate extends FrameworkEvent {
             embeds: [embed],
             components: [row],
             allowedMentions: {
-                repliedUser: false
-            }
+                repliedUser: false,
+            },
         };
     }
     parseError(error) {
         error.possibleSolutions = [];
         if (/(?:^|(?<= ))(EmbedBuilder|Discord|ActionRowBuilder|ButtonBuilder|MessageSelectMenu)(?:(?= )|$) is not defined/gm.test(error.message)) {
-            error.possibleSolutions.push('const { ' + error.message.split(" ")[0] + ' } = require(\'discord.js\');');
+            error.possibleSolutions.push('const { ' +
+                error.message.split(' ')[0] +
+                " } = require('discord.js');");
         }
         else if (error.message.includes('A custom id and url cannot both be specified')) {
-            error.possibleSolutions.push("Remove .setCustomId(...) or .setURL(...)");
+            error.possibleSolutions.push('Remove .setCustomId(...) or .setURL(...)');
         }
         return error;
     }

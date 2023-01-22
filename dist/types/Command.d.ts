@@ -1,6 +1,6 @@
-import { CommandArgDefinition } from "./CommandArgDefinition.js";
-import { CommandParameters } from "./CommandParameters.js";
-import { SelectMenuParameters } from "./SelectMenuParameters.js";
+import { CommandArgDefinition } from './CommandArgDefinition.js';
+import { CommandParameters } from './CommandParameters.js';
+import { SelectMenuParameters } from './SelectMenuParameters.js';
 export declare abstract class Command {
     name: string;
     categories: string[];
@@ -17,8 +17,8 @@ export declare abstract class Command {
     args: CommandArgDefinition[];
     type: string;
     constructor();
-    abstract execute({ message, interaction, args, client, framework }: CommandParameters): void;
-    executePrefixCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
-    executeSlashCommand({ message, interaction, args, client, framework, trans }: CommandParameters): void;
-    abstract selectMenu({ path, interaction, client, framework, trans }: SelectMenuParameters): void;
+    abstract execute({ message, interaction, args, client, framework, }: CommandParameters): void;
+    executePrefixCommand({ message, interaction, args, client, framework, trans, }: CommandParameters): void;
+    executeSlashCommand({ message, interaction, args, client, framework, trans, }: CommandParameters): void;
+    abstract selectMenu({ path, interaction, client, framework, trans, }: SelectMenuParameters): void;
 }

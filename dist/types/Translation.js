@@ -10,7 +10,7 @@ export class Translation {
             text = this.text.get('en');
         }
         if (params) {
-            Object.keys(params).forEach(key => {
+            Object.keys(params).forEach((key) => {
                 text = text.replace(`{${key}}`, params[key]);
             });
         }

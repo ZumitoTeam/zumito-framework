@@ -1,9 +1,9 @@
-import { GuildMember, TextChannel } from "discord.js";
-import { Command } from "./types/Command.js";
-import { FrameworkSettings } from "./types/FrameworkSettings.js";
-import { Module } from "./types/Module.js";
-import { FrameworkEvent } from "./types/FrameworkEvent.js";
-import { TranslationManager } from "./TranslationManager.js";
+import { GuildMember, TextChannel } from 'discord.js';
+import { Command } from './types/Command.js';
+import { FrameworkSettings } from './types/FrameworkSettings.js';
+import { Module } from './types/Module.js';
+import { FrameworkEvent } from './types/FrameworkEvent.js';
+import { TranslationManager } from './TranslationManager.js';
 /**
  * @class ZumitoFramework
  * @classdesc The main class of the framework.
