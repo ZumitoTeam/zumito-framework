@@ -1,13 +1,10 @@
-import { TranslationManager } from '../TranslationManager.js';
 import { ZumitoFramework } from '../ZumitoFramework.js';
 import { Command } from './Command.js';
 import { EventParameters } from './EventParameters.js';
 import { FrameworkEvent } from './FrameworkEvent.js';
-import { Translation } from './Translation.js';
 import * as chokidar from 'chokidar';
 import chalk from 'chalk';
 import boxen from 'boxen';
-
 import * as fs from 'fs';
 import path from 'path';
 import {
@@ -15,13 +12,14 @@ import {
     CommandInteraction,
     SelectMenuInteraction,
 } from 'discord.js';
+import { DatabaseModel } from './DatabaseModel.js';
 
 export abstract class Module {
     protected path: string;
     protected framework: ZumitoFramework;
     protected commands: Map<string, Command> = new Map();
     protected events: Map<string, FrameworkEvent> = new Map();
-    protected models: Map<string, any> = new Map();
+    protected models: Array<DatabaseModel> = [];
 
     constructor(path, framework) {
         this.path = path;
@@ -33,8 +31,6 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
-        // console.error('[🔄🔴 ] Error initializing module ' + this.constructor.name);
-        // console.log(boxen(e + '\n' + e.stack, { padding: 1 }));
     }
 
     async registerCommands() {
@@ -312,29 +308,26 @@ export abstract class Module {
         if (!fs.existsSync(path.join(this.path, 'models'))) return;
         const files = fs.readdirSync(path.join(this.path, 'models'));
         for (const file of files) {
-            if (file.endsWith('.json')) {
-                const modelName =
-                    file.slice(0, -5).charAt(0).toUpperCase() +
-                    file.slice(0, -5).slice(1);
-                const modelDefiniton = await import(
-                    'file://' + `${this.path}/models/${file}`,
-                    {
-                        assert: {
-                            type: 'json',
-                        },
-                    }
+            if (file.endsWith('.ts') || file.endsWith('.js')) {
+                let model = await import(
+                    'file://' + `${this.path}/models/${file}`
                 ).catch((e) => {
                     console.error(
-                        `[🔄🔴 ] Error loading model ${modelName} on module ${this.constructor.name}`
+                        `[🔄🔴 ] Error loading ${file.slice(
+                            0,
+                            -3
+                        )} model on module ${this.constructor.name}`
                     );
-                    console.error(e, e.name, e.stack);
+                    console.error(e + '\n' + e.name + '\n' + e.stack);
                 });
-                this.models.set(modelName, modelDefiniton.default);
+                model = Object.values(model)[0];
+                model = new model();
+                this.models.push(model);
             }
         }
     }
 
-    getModels(): Map<string, any> {
+    getModels(): Array<DatabaseModel> {
         return this.models;
     }
 }

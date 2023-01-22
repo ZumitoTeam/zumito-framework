@@ -43,7 +43,7 @@ export class InteractionCreate extends FrameworkEvent {
                 CommandType.slash,
             ].includes(commandInstance.type))
                 return;
-            const trans = this.getTransMethod(commandInstance, guildSettings, framework);
+            const trans = this.getTransMethod(commandInstance, framework, guildSettings);
             if (commandInstance.type === CommandType.separated ||
                 commandInstance.type === CommandType.slash) {
                 await commandInstance.executeSlashCommand({

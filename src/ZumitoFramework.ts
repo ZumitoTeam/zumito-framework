@@ -21,7 +21,7 @@ import { betterLogging } from 'better-logging';
 betterLogging(console);
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import mongoose from 'mongoose';
+import canario from 'canario';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import http from 'http';
@@ -29,6 +29,7 @@ import * as url from 'url';
 import { CommandType } from './types/CommandType.js';
 import { CommandArgDefinition } from './types/CommandArgDefinition.js';
 import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
+import { DatabaseModel } from './types/DatabaseModel.js';
 
 /**
  * @class ZumitoFramework
@@ -89,16 +90,15 @@ export class ZumitoFramework {
     routes: any;
     /**
      * The database models loaded in the framework.
-     * @type {Map<string, any>}
+     * @type {Array<DatabaseModel>}
      * @private
-     * @see {@link https://mongoosejs.com/docs/models.html}
      */
-    models: any;
+    models: Array<DatabaseModel>;
     /**
-     * The connection to the MongoDB database.
-     * @type {mongoose.Connection}
+     * The canario database schema instance.
+     * @type {canario.Schema}
      * @private
-     * @see {@link https://mongoosejs.com/docs/api/connection.html}
+     * @see {@link https://www.npmjs.com/package/canario}
      */
     database: any;
     /**
@@ -120,7 +120,7 @@ export class ZumitoFramework {
         this.commands = new Map();
         this.events = new Map();
         this.translations = new TranslationManager();
-        this.models = new Map();
+        this.models = [];
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
@@ -144,22 +144,36 @@ export class ZumitoFramework {
      * @returns {Promise<void>}
      */
     private async initialize() {
-        try {
-            mongoose.set('strictQuery', true);
-            await mongoose.connect(this.settings.mongoQueryString);
-        } catch (err) {
-            console.error('[🗄️🔴] Database connection error:', err.message);
-            process.exit(1);
-        } finally {
-            this.database = mongoose.connection;
-            console.log('[🗄️🟢] Database connection successful');
-        }
-
+        await this.initializeDatabase();
         this.initializeDiscordClient();
         this.startApiServer();
 
         await this.registerModules();
         await this.refreshSlashCommands();
+    }
+
+    private async initializeDatabase() {
+        const folders = ['db', 'db/tingodb'];
+        for (const folder of folders) {
+            if (!fs.existsSync(folder)) {
+                fs.mkdirSync(folder);
+            }
+        }
+        this.database = new canario.Schema(
+            this.settings?.database?.type || 'tingodb',
+            this.settings?.database || {}
+        );
+        await new Promise((resolve, reject) => {
+            this.database.on('connected', resolve);
+            this.database.on('error', reject);
+        })
+            .then(() => {
+                console.log('[🗄️🟢] Database connection successful!');
+            })
+            .catch((err) => {
+                console.error('[🗄️🔴] Database connection error:', err.message);
+                process.exit(1);
+            });
     }
 
     /**
@@ -227,9 +241,26 @@ export class ZumitoFramework {
             await this.registerModule(modulesFolder, file);
         }
 
-        this.models.forEach((modelDefinition, modelName) => {
-            const schema = new mongoose.Schema(modelDefinition);
-            this.models.set(modelName, mongoose.model(modelName, schema));
+        // Define models
+        const schemas: any = {};
+        this.models.forEach((model: DatabaseModel) => {
+            if (!schemas[model.name]) {
+                schemas[model.name] = model.getModel(this.database);
+            } else {
+                schemas[model.name] = MergeRecursive(
+                    schemas[model.name],
+                    model.getModel(this.database)
+                );
+            }
+        });
+        Object.keys(schemas).forEach((schemaName: string) => {
+            this.database.define(schemaName, schemas[schemaName]);
+        });
+        this.models.forEach((model: DatabaseModel) => {
+            model.define(
+                this.database.models[model.name],
+                this.database.models
+            );
         });
     }
 
@@ -287,15 +318,8 @@ export class ZumitoFramework {
         this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
 
         // Register models
-        moduleInstance.getModels().forEach((modelDefinition, modelName) => {
-            if (!this.models.has(modelName)) {
-                this.models.set(modelName, modelDefinition);
-            } else {
-                this.models.set(
-                    modelName,
-                    MergeRecursive(this.models.get(modelName), modelDefinition)
-                );
-            }
+        moduleInstance.getModels().forEach((model: DatabaseModel) => {
+            this.models.push(model);
         });
 
         /*
@@ -416,15 +440,23 @@ export class ZumitoFramework {
      * getGuildSettings(interaction.guildId);
      */
     public async getGuildSettings(guildId: string) {
-        const Guild = this.models.get('Guild');
-        let guild = await Guild.findOne({ guild_id: guildId }).exec();
-        if (guild == null) {
-            guild = new Guild({
-                guild_id: guildId,
+        const Guild = this.database.models.Guild;
+        return await new Promise((resolve, reject) => {
+            Guild.findOne({ where: { guild_id: guildId } }, (err, guild) => {
+                if (err) reject(err);
+                if (guild == null) {
+                    guild = new Guild({
+                        guild_id: guildId,
+                    });
+                    guild.save((err) => {
+                        if (err) reject(err);
+                        resolve(guild);
+                    });
+                } else {
+                    resolve(guild);
+                }
             });
-            await guild.save();
-        }
-        return guild;
+        });
     }
 
     async refreshSlashCommands() {

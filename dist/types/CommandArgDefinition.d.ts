@@ -3,5 +3,5 @@ export interface CommandArgDefinition {
     name: string;
     optional: boolean;
     type: string;
-    choices?: CommandChoiceDefinition[] | Function;
+    choices?: CommandChoiceDefinition[] | (() => CommandChoiceDefinition[]);
 }

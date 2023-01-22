@@ -112,7 +112,7 @@ export class MessageCreate extends FrameworkEvent {
             }
 
             try {
-                const guildSettings = await framework.getGuildSettings(
+                const guildSettings: any = await framework.getGuildSettings(
                     message.guildId
                 );
                 const parsedArgs = new Map<string, any>();

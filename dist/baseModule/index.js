@@ -1,6 +1,7 @@
 import { Module } from '../types/Module.js';
 import { InteractionCreate } from './events/discord/interactionCreate.js';
 import { MessageCreate } from './events/discord/messageCreate.js';
+import { Guild } from './models/Guild.js';
 export class baseModule extends Module {
     constructor(modulePath, framework) {
         super(modulePath, framework);
@@ -11,5 +12,8 @@ export class baseModule extends Module {
         this.events.forEach((event) => {
             this.registerDiscordEvent(event);
         });
+    }
+    async registerModels() {
+        this.models.push(new Guild(this.framework));
     }
 }

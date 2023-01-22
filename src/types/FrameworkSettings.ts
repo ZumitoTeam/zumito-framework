@@ -1,4 +1,5 @@
 export interface FrameworkSettings {
+    database: any;
     logLevel?: number;
     debug?: boolean;
     discordClientOptions: {
@@ -7,5 +8,4 @@ export interface FrameworkSettings {
         clientId: string;
     };
     defaultPrefix?: string;
-    mongoQueryString: string;
 }
