@@ -14,7 +14,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/ZumitoTeam/zumito-framework">
-    <img src="https://media.discordapp.net/attachments/964297459327184906/1066399583896342649/d05ce5c0de25fd9afb4f5492f31f21fe.png" alt="Logo" width="80" height="80">
+    <img src="https://media.discordapp.net/attachments/964297459327184906/1066399583896342649/d05ce5c0de25fd9afb4f5492f31f21fe.png" alt="Logo" width="80" height="80"/>
   </a>
 
   <h3 align="center">Zumito framework</h3>
