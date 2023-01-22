@@ -1,5 +1,5 @@
 export abstract class FrameworkEvent {
-    once: boolean = false;
-    disabled: boolean = false;
+    once = false;
+    disabled = false;
     abstract execute(...args: any[]): any;
 }

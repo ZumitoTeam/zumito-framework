@@ -1,7 +1,6 @@
-import { CommandInteraction, Interaction } from "discord.js";
+import { CommandInteraction, Interaction } from 'discord.js';
 
 export class CommandArguments {
-
     args: any = {};
 
     constructor(args = {}) {
@@ -19,5 +18,4 @@ export class CommandArguments {
     public static parseFromInteraction(interaction: CommandInteraction) {
         return new CommandArguments(interaction.options);
     }
-        
 }

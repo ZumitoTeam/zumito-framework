@@ -1,9 +1,8 @@
-import { Translation } from "./types/Translation.js";
+import { Translation } from './types/Translation.js';
 
 export class TranslationManager {
-
     private translations: Map<string, Translation> = new Map();
-    private defaultLanguage: string = 'en';
+    private defaultLanguage = 'en';
     private languages: string[] = [];
 
     constructor() {}
@@ -46,5 +45,5 @@ export class TranslationManager {
 
     getLanguages(): string[] {
         return this.languages;
-    } 
+    }
 }

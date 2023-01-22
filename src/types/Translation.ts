@@ -1,5 +1,4 @@
 export class Translation {
-
     text: Map<string, string> = new Map();
 
     constructor() {}
@@ -12,7 +11,7 @@ export class Translation {
             text = this.text.get('en');
         }
         if (params) {
-            Object.keys(params).forEach(key => {
+            Object.keys(params).forEach((key) => {
                 text = text.replace(`{${key}}`, params[key]);
             });
         }
@@ -34,5 +33,4 @@ export class Translation {
     setAll(text: Map<string, string>): void {
         this.text = text;
     }
-
 }

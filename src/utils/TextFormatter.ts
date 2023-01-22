@@ -80,26 +80,58 @@ ${code}
         return `[${text}](${url})`;
     }
 
-    public static getHyperlinkWithTooltip(text: string, url: string, tooltip: string) {
+    public static getHyperlinkWithTooltip(
+        text: string,
+        url: string,
+        tooltip: string
+    ) {
         return `[${text}](${url} "${tooltip}")`;
     }
 
-    public static getHyperlinkWithTooltipAndImage(text: string, url: string, tooltip: string, imageUrl: string) {
+    public static getHyperlinkWithTooltipAndImage(
+        text: string,
+        url: string,
+        tooltip: string,
+        imageUrl: string
+    ) {
         return `[${text}](${url} "${tooltip}":${imageUrl})`;
     }
 
-    public static getHyperlinkWithImage(text: string, url: string, imageUrl: string) {
+    public static getHyperlinkWithImage(
+        text: string,
+        url: string,
+        imageUrl: string
+    ) {
         return `[${text}](${url}:${imageUrl})`;
     }
 
-    public static getProgressbar(progress: number, max: number, length: number, filled: string, empty: string) {
+    public static getProgressbar(
+        progress: number,
+        max: number,
+        length: number,
+        filled: string,
+        empty: string
+    ) {
         const percentage = progress / max;
         const filledLength = Math.round(length * percentage);
         const emptyLength = length - filledLength;
         return filled.repeat(filledLength) + empty.repeat(emptyLength);
     }
 
-    public static getProgressbarWithText(progress: number, max: number, length: number, filled: string, empty: string, text: string) {
-        return `${this.getProgressbar(progress, max, length, filled, empty)} ${text}`;
+    public static getProgressbarWithText(
+        progress: number,
+        max: number,
+        length: number,
+        filled: string,
+        empty: string,
+        text: string
+    ) {
+        return `${this.getProgressbar(
+            progress,
+            max,
+            length,
+            filled,
+            empty
+        )} ${text}`;
     }
 }
