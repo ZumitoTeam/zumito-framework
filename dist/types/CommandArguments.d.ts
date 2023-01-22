@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { CommandInteraction } from 'discord.js';
 export declare class CommandArguments {
     args: any;
     constructor(args?: {});

@@ -1,23 +1,23 @@
-import { SlashCommandBuilder } from "discord.js";
-import { Module } from "./types/Module.js";
+import { SlashCommandBuilder, } from 'discord.js';
+import { Module } from './types/Module.js';
 import { ApiResponse } from './definitions/ApiResponse.js';
-import { baseModule } from "./baseModule/index.js";
-import { TranslationManager } from "./TranslationManager.js";
+import { baseModule } from './baseModule/index.js';
+import { TranslationManager } from './TranslationManager.js';
 import express from 'express';
 import * as fs from 'fs';
 import path from 'path';
-import { Client } from "discord.js";
+import { Client } from 'discord.js';
 // import better-logging
-import { betterLogging } from "better-logging";
+import { betterLogging } from 'better-logging';
 betterLogging(console);
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import http from 'http';
 import * as url from 'url';
-import { CommandType } from "./types/CommandType.js";
+import { CommandType } from './types/CommandType.js';
 /**
  * @class ZumitoFramework
  * @classdesc The main class of the framework.
@@ -62,10 +62,12 @@ export class ZumitoFramework {
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
         }
-        this.initialize().then(() => {
+        this.initialize()
+            .then(() => {
             if (callback)
                 callback(this);
-        }).catch(err => {
+        })
+            .catch((err) => {
             console.error(err, err.message, err.stack, err.name);
         });
     }
@@ -75,7 +77,7 @@ export class ZumitoFramework {
             await mongoose.connect(this.settings.mongoQueryString);
         }
         catch (err) {
-            console.error("[🗄️🔴] Database connection error:", err.message);
+            console.error('[🗄️🔴] Database connection error:', err.message);
             process.exit(1);
         }
         finally {
@@ -89,9 +91,9 @@ export class ZumitoFramework {
     }
     startApiServer() {
         this.app = express();
-        let port = process.env.PORT || '80';
+        const port = process.env.PORT || '80';
         this.app.set('port', port);
-        var server = http.createServer(this.app);
+        const server = http.createServer(this.app);
         server.listen(port);
         server.on('error', (err) => {
             console.log('[🌐🔴] Error starting API web server: ' + err);
@@ -109,12 +111,12 @@ export class ZumitoFramework {
         //this.app.use("/", indexRouter);
         //this.app.use("/api/", apiRouter);
         // throw 404 if URL not found
-        this.app.all("*", function (req, res) {
-            return ApiResponse.notFoundResponse(res, "Page not found");
+        this.app.all('*', function (req, res) {
+            return ApiResponse.notFoundResponse(res, 'Page not found');
         });
         this.app.use(function (err, req, res) {
             if (err.name === 'UnauthorizedError') {
-                return ApiResponse.unauthorizedResponse(res, "Invalid token");
+                return ApiResponse.unauthorizedResponse(res, 'Invalid token');
             }
         });
     }
@@ -130,8 +132,8 @@ export class ZumitoFramework {
             return;
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         await this.registerModule(__dirname, 'baseModule', baseModule);
-        let files = fs.readdirSync(modulesFolder);
-        for (let file of files) {
+        const files = fs.readdirSync(modulesFolder);
+        for (const file of files) {
             await this.registerModule(modulesFolder, file);
         }
         this.models.forEach((modelDefinition, modelName) => {
@@ -152,7 +154,6 @@ export class ZumitoFramework {
             else {
                 module = Module;
             }
-            ;
         }
         // Create module instance
         let moduleInstance;
@@ -171,7 +172,10 @@ export class ZumitoFramework {
                 this.commands.set(command.name, command);
             });
         }
-        this.commands = new Map([...this.commands, ...moduleInstance.getCommands()]);
+        this.commands = new Map([
+            ...this.commands,
+            ...moduleInstance.getCommands(),
+        ]);
         // Register module events
         this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
         // Register models
@@ -192,7 +196,7 @@ export class ZumitoFramework {
     }
     initializeDiscordClient() {
         this.client = new Client({
-            intents: this.settings.discordClientOptions.intents
+            intents: this.settings.discordClientOptions.intents,
         });
         this.client.login(this.settings.discordClientOptions.token);
         this.client.on('ready', () => {
@@ -204,7 +208,7 @@ export class ZumitoFramework {
         //log( 'commandLine', commandLine ) ;
         //  Find a unique marker for the space character.
         //  Start with '<SP>' and repeatedly append '@' if necessary to make it unique.
-        var spaceMarker = '<SP>';
+        let spaceMarker = '<SP>';
         while (commandLine.indexOf(spaceMarker) > -1)
             spaceMarker += '@';
         //  Protect double-quoted strings.
@@ -213,19 +217,19 @@ export class ZumitoFramework {
         //   o  Replace each double-quoted-string with what's inside the qouble-quotes,
         //      after each space character has been replaced with the space-marker above.
         //   o  The outer double-quotes will not be present.
-        var noSpacesInQuotes = commandLine.replace(/"([^"]*)"?/g, (fullMatch, capture) => {
+        const noSpacesInQuotes = commandLine.replace(/"([^"]*)"?/g, (fullMatch, capture) => {
             return capture.replace(/ /g, spaceMarker);
         });
         //  Now that it is safe to do so, split the command-line at one-or-more spaces.
-        var mangledParamArray = noSpacesInQuotes.split(/ +/);
+        const mangledParamArray = noSpacesInQuotes.split(/ +/);
         //  Create a new array by restoring spaces from any space-markers.
-        var paramArray = mangledParamArray.map((mangledParam) => {
+        const paramArray = mangledParamArray.map((mangledParam) => {
             return mangledParam.replace(RegExp(spaceMarker, 'g'), ' ');
         });
         return paramArray;
     }
     async memberHasPermission(member, channel, permission) {
-        let memberPermission = await channel.permissionsFor(member);
+        const memberPermission = await channel.permissionsFor(member);
         return memberPermission.has(permission);
     }
     async getGuildSettings(guildId) {
@@ -241,10 +245,12 @@ export class ZumitoFramework {
     }
     async refreshSlashCommands() {
         const rest = new REST({ version: '10' }).setToken(this.settings.discordClientOptions.token);
-        let commands = Array.from(this.commands.values())
-            .filter((command) => command.type == CommandType.slash || command.type == CommandType.separated || command.type == CommandType.any)
+        const commands = Array.from(this.commands.values())
+            .filter((command) => command.type == CommandType.slash ||
+            command.type == CommandType.separated ||
+            command.type == CommandType.any)
             .map((command) => {
-            let slashCommand = new SlashCommandBuilder()
+            const slashCommand = new SlashCommandBuilder()
                 .setName(command.name)
                 .setDescription(this.translations.get('command.' + command.name + '.description', 'en'));
             if (command.args) {
@@ -269,17 +275,22 @@ export class ZumitoFramework {
                     }
                     slashCommand[method]((option) => {
                         option.setName(arg.name);
-                        option.setDescription(this.translations.get('command.' + command.name + '.args.' + arg.name + '.description', 'en'));
+                        option.setDescription(this.translations.get('command.' +
+                            command.name +
+                            '.args.' +
+                            arg.name +
+                            '.description', 'en'));
                         option.setRequired(!arg.optional);
                         if (arg.choices) {
                             // if arg.choices is function, call it
                             if (typeof arg.choices == 'function') {
-                                arg.choices = arg.choices();
+                                arg.choices =
+                                    arg.choices();
                             }
                             arg.choices.forEach((choice) => {
                                 option.addChoices({
                                     name: choice.name,
-                                    value: choice.value
+                                    value: choice.value,
                                 });
                             });
                         }
@@ -294,7 +305,7 @@ export class ZumitoFramework {
     }
 }
 function MergeRecursive(obj1, obj2) {
-    for (var p in obj2) {
+    for (const p in obj2) {
         try {
             // Property in destination object set; update its value.
             if (obj2[p].constructor == Object) {
