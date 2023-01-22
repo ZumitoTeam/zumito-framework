@@ -91,6 +91,7 @@ export class ZumitoFramework {
 
     async initialize() {
         try {
+            mongoose.set('strictQuery', true);
             await mongoose.connect(this.settings.mongoQueryString);
         } catch (err) {
             console.error('[🗄️🔴] Database connection error:', err.message);
