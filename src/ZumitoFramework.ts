@@ -1,12 +1,10 @@
 import {
-    Channel,
     GuildMember,
-    Message,
     PermissionsBitField,
     SlashCommandBuilder,
     TextChannel,
+    Client,
 } from 'discord.js';
-import { CommandArguments } from './types/CommandArguments.js';
 import { Command } from './types/Command.js';
 import { FrameworkSettings } from './types/FrameworkSettings.js';
 import { Module } from './types/Module.js';
@@ -18,7 +16,6 @@ import { TranslationManager } from './TranslationManager.js';
 import express from 'express';
 import * as fs from 'fs';
 import path from 'path';
-import { Collection, Client } from 'discord.js';
 // import better-logging
 import { betterLogging } from 'better-logging';
 betterLogging(console);
@@ -37,13 +34,27 @@ import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
  * @class ZumitoFramework
  * @classdesc The main class of the framework.
  *
- * @property {FrameworkSettings} settings - The settings of the framework.
- * @property {Client} client - The client client instance.
- * @property {Collection<string, Module>} modules - The modules loaded in the framework.
- * @property {Collection<string, Command>} commands - The commands loaded in the framework.
+ * @property {FrameworkSettings} settings - The settings for the framework.
+ * @property {Client} client - The discord client instance.
+ * @property {Map<string, Module>} modules - The modules loaded in the framework.
+ * @property {Map<string, Command>} commands - The commands loaded in the framework.
+ * @property {Map<string, FrameworkEvent>} events - The events loaded in the framework.
+ * @property {TranslationManager} translations - The Translation Manager for the framework.
+ * @property {Map<string, any>} models - The database models loaded in the framework.
+ * @property {mongoose.Connection} database - The connection to the MongoDB database.
+ * @property {express.Application} app - The ExpressJS application for the API server.
+ * @example
+ *  new ZumitoFramework({
+ *     prefix: '!',
+ *     discordClientOptions: {
+ *        token: 'token',
+ *        clientId: 'clientId',
+ *       intents: 0
+ *    }
+ * });
  */
 export class ZumitoFramework {
-    client: any;
+    client: Client;
     settings: FrameworkSettings;
     modules: Map<string, Module>;
     commands: Map<string, Command>;
@@ -56,19 +67,10 @@ export class ZumitoFramework {
 
     /**
      * @constructor
-     * @description Creates a new instance of the framework.
-     * @param {FrameworkSettings} settings - The settings of the framework.
-     * @example new ZumitoFramework({
-     *     prefix: '!',
-     *     discordClientOptions: {
-     *        token: 'token',
-     *        clientId: 'clientId',
-     *       intents: 0
-     *    }
-     * });
-     * @public
+     * @param {FrameworkSettings} settings - The settings to use for the framework.
+     * @param {(framework: ZumitoFramework) => void} [callback] - A callback to be called when the framework has finished initializing.
      */
-    constructor(settings: FrameworkSettings, callback?: Function) {
+    constructor(settings: FrameworkSettings, callback?: (framework) => void) {
         this.settings = settings;
         this.modules = new Map();
         this.commands = new Map();
@@ -89,7 +91,15 @@ export class ZumitoFramework {
             });
     }
 
-    async initialize() {
+    /**
+     * Initializes the framework.
+     * Connects to the MongoDB database, starts the Discord client, and runs API server.
+     * It also loads the modules from the project's modules folder.
+     * @async
+     * @private
+     * @returns {Promise<void>}
+     */
+    private async initialize() {
         try {
             mongoose.set('strictQuery', true);
             await mongoose.connect(this.settings.mongoQueryString);
@@ -108,6 +118,10 @@ export class ZumitoFramework {
         await this.refreshSlashCommands();
     }
 
+    /**
+     * Initializes and starts the API server using ExpressJS.
+     * Sets up middleware, routes, and error handling for the server.
+     */
     startApiServer() {
         this.app = express();
 
@@ -147,6 +161,13 @@ export class ZumitoFramework {
         });
     }
 
+    /**
+     * Register all modules in the 'modules' folder.
+     * Scans the specified folder for module files and calls the `registerModule` method for each file.
+     *  Also, it loads the baseModule in the framework.
+     * @private
+     * @returns {Promise<void>}
+     */
     private async registerModules() {
         let modulesFolder;
         if (fs.existsSync(`${process.cwd()}/modules`)) {
@@ -241,6 +262,11 @@ export class ZumitoFramework {
         */
     }
 
+    /**
+     * Initializes the Discord client using the Discord.js library.
+     * Logs in to the Discord API using the provided token and logs a message when the client is ready.
+     * @private
+     */
     private initializeDiscordClient() {
         this.client = new Client({
             intents: this.settings.discordClientOptions.intents,
@@ -252,6 +278,19 @@ export class ZumitoFramework {
         });
     }
 
+    /**
+     * From a command-line string, returns an array of parameters.
+     * @param commandLine
+     * @returns {string[]}
+     * @private
+     * @static
+     * @example
+     * // returns ['a', 'b', 'c']
+     * splitCommandLine('a b c');
+     * @example
+     * // returns ['a', 'b c']
+     * splitCommandLine('a "b c"');
+     */
     public static splitCommandLine(commandLine) {
         //log( 'commandLine', commandLine ) ;
 
@@ -284,7 +323,22 @@ export class ZumitoFramework {
         return paramArray;
     }
 
-    async memberHasPermission(
+    /**
+     * Checks if a member has a permission in a channel.
+     * @param member
+     * @param channel
+     * @param permission
+     * @returns {Promise<boolean>}
+     * @public
+     * @example
+     * // returns true if the member has the permission
+     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES);
+     * @example
+     * // returns true if the member has the permission
+     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES | Permissions.FLAGS.MANAGE_CHANNELS);
+     * @example
+     */
+    public async memberHasPermission(
         member: GuildMember,
         channel: TextChannel,
         permission: bigint
@@ -294,7 +348,30 @@ export class ZumitoFramework {
         return memberPermission.has(permission);
     }
 
-    async getGuildSettings(guildId: string) {
+    /**
+     * Gets the guild settings from the database.
+     * If the guild is not in the database, it is added.
+     * @param guildId
+     * @returns {Promise<any>}
+     * @public
+     * @async
+     * @example
+     * // returns the guild settings
+     * getGuildSettings('123456789012345678');
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(message.guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(interaction.guild.id);
+     * @example
+     * // returns the guild settings
+     * getGuildSettings(interaction.guildId);
+     */
+    public async getGuildSettings(guildId: string) {
         const Guild = this.models.get('Guild');
         let guild = await Guild.findOne({ guild_id: guildId }).exec();
         if (guild == null) {

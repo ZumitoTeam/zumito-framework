@@ -176,7 +176,8 @@ export class MessageCreate extends FrameworkEvent {
                         }
                     },
                 });
-                if (!message.channel.isDMBased && !message.deletable && false) {
+                if (!message.channel.isDMBased && !message.deletable) {
+                    return; // TODO: test if this works
                     // false = settings.deleteCommands
                     try {
                         message.delete().catch(function () {
