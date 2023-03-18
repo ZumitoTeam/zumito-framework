@@ -17,6 +17,7 @@ import { DatabaseConfigLoader } from './utils/DatabaseConfigLoader.js';
 import { EmojiFallback } from './utils/EmojiFallback.js';
 import { TextFormatter } from './utils/TextFormatter.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
+import { DatabaseModel } from './types/DatabaseModel';
 
 export {
     ZumitoFramework,
@@ -38,4 +39,5 @@ export {
     TextFormatter,
     EmojiFallback,
     DatabaseConfigLoader,
+    DatabaseModel,
 };

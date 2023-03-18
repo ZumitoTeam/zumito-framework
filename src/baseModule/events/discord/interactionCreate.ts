@@ -1,9 +1,4 @@
-import {
-    ButtonInteraction,
-    Client,
-    CommandInteraction,
-    Interaction,
-} from 'discord.js';
+import { ButtonInteraction, CommandInteraction } from 'discord.js';
 
 import { Command } from '../../../types/Command.js';
 import { CommandType } from '../../../types/CommandType.js';
