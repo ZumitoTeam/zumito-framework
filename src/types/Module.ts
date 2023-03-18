@@ -81,69 +81,27 @@ export abstract class Module {
 
     async onCommandCreated(filePath: string) {
         if (filePath.endsWith('.js') || filePath.endsWith('.ts')) {
-            let command = await import('file://' + filePath).catch((e) => {
-                console.error(
-                    '[🆕🔴 ] Error loading command ' +
-                        chalk.blue(
-                            filePath
-                                .replace(/^.*[\\\/]/, '')
-                                .split('.')
-                                .slice(0, -1)
-                                .join('.')
-                        )
-                );
+            let command = await import('file://' + filePath).catch(e => {
+                console.error('[🆕🔴 ] Error loading command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')));
                 console.log(e + '\n' + e.name + '\n' + e.stack);
             });
             command = Object.values(command)[0];
             command = new command();
-            this.commands.set(command.constructor.name.toLowerCase(), command);
-            console.debug(
-                '[🆕🟢 ] Command ' +
-                    chalk.blue(
-                        filePath
-                            .replace(/^.*[\\\/]/, '')
-                            .split('.')
-                            .slice(0, -1)
-                            .join('.')
-                    ) +
-                    ' loaded'
-            );
+            this.framework.commands.set(command.constructor.name.toLowerCase(), command);
+            console.debug('[🆕🟢 ] Command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
         }
     }
 
     async onCommandChanged(filePath: string) {
         if (filePath.endsWith('.js') || filePath.endsWith('.ts')) {
-            let command = await import(
-                'file://' + filePath + '?update=' + Date.now().toString()
-            ).catch((e) => {
-                console.error(
-                    '[🔄🔴 ] Error reloading command ' +
-                        chalk.blue(
-                            filePath
-                                .replace(/^.*[\\\/]/, '')
-                                .split('.')
-                                .slice(0, -1)
-                                .join('.')
-                        )
-                );
-                console.log(
-                    boxen(e + '\n' + e.name + '\n' + e.stack, { padding: 1 })
-                );
+            let command = await import('file://' + filePath + '?update=' + Date.now().toString()).catch(e => {
+                console.error('[🔄🔴 ] Error reloading command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')));
+                console.log(boxen(e + '\n' + e.name + '\n' + e.stack, { padding: 1 }));
             });
             command = Object.values(command)[0];
             command = new command();
-            this.commands.set(command.constructor.name.toLowerCase(), command);
-            console.debug(
-                '[🔄🟢 ] Command ' +
-                    chalk.blue(
-                        filePath
-                            .replace(/^.*[\\\/]/, '')
-                            .split('.')
-                            .slice(0, -1)
-                            .join('.')
-                    ) +
-                    ' reloaded'
-            );
+            this.framework.commands.set(command.constructor.name.toLowerCase(), command);
+            console.debug('[🔄🟢 ] Command ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' reloaded');
         }
     }
 
