@@ -24,7 +24,13 @@ export class DatabaseConfigLoader {
             config.password = process.env.DATABASE_PASSWORD;
             config.database = process.env.DATABASE_NAME;
         } else if (config.type == 'mongodb') {
-            config.uri = process.env.DATABASE_URI;
+            config.host = process.env.DATABASE_HOST || 'localhost';
+            config.port = process.env.DATABASE_PORT || 27017;
+            config.username = process.env.DATABASE_USERNAME || 'root';
+            config.password = process.env.DATABASE_PASSWORD;
+            if (process.env.DATABASE_NAME) {
+                config.database = process.env.DATABASE_NAME;
+            }
         } else if (config.type == 'tingodb') {
             config.database = './db/tingodb';
         } else if (config.type == 'couchdb') {
