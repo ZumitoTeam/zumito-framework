@@ -1,10 +1,12 @@
-import { GuildMember, TextChannel, Client } from 'discord.js';
+import { Client, GuildMember, TextChannel } from 'discord.js';
 import { Command } from './types/Command.js';
+import { DatabaseModel } from './types/DatabaseModel.js';
+import { EventEmitter } from 'events';
+import { FrameworkEvent } from './types/FrameworkEvent.js';
 import { FrameworkSettings } from './types/FrameworkSettings.js';
 import { Module } from './types/Module.js';
-import { FrameworkEvent } from './types/FrameworkEvent.js';
+import { StatusManager } from './managers/StatusManager.js';
 import { TranslationManager } from './TranslationManager.js';
-import { DatabaseModel } from './types/DatabaseModel.js';
 /**
  * @class ZumitoFramework
  * @description The main class of the framework.
@@ -82,6 +84,21 @@ export declare class ZumitoFramework {
      * @see {@link https://expressjs.com/en/4x/api.html#app}
      */
     app: any;
+    /**
+     * The Status Manager instance.
+     * @type {StatusManager}
+     * @private
+     * @see {@link StatusManager}
+     */
+    statusManager: StatusManager;
+    /**
+     * Event emitter for the framework.
+     * All events related to the framework are emitted from here.
+     * @type {EventEmitter}
+     * @private
+     * @see {@link https://nodejs.org/api/events.html#events_class_eventemitter}
+     */
+    eventEmitter: EventEmitter;
     /**
      * @constructor
      * @param {FrameworkSettings} settings - The settings to use for the framework.

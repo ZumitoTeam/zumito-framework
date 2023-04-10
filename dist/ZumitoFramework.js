@@ -1,22 +1,24 @@
-import { SlashCommandBuilder, Client, } from 'discord.js';
-import { Module } from './types/Module.js';
-import { ApiResponse } from './definitions/ApiResponse.js';
-import { baseModule } from './baseModule/index.js';
-import { TranslationManager } from './TranslationManager.js';
-import express from 'express';
 import * as fs from 'fs';
-import path from 'path';
-// import better-logging
-import { betterLogging } from 'better-logging';
-betterLogging(console);
+import * as url from 'url';
+import { Client, SlashCommandBuilder, } from 'discord.js';
+import { ApiResponse } from './definitions/ApiResponse.js';
+import { CommandType } from './types/CommandType.js';
+import { EventEmitter } from 'events';
+import { Module } from './types/Module.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
+import { StatusManager } from './managers/StatusManager.js';
+import { TranslationManager } from './TranslationManager.js';
+import { baseModule } from './baseModule/index.js';
+import { betterLogging } from 'better-logging';
 import canario from 'canario';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import express from 'express';
 import http from 'http';
-import * as url from 'url';
-import { CommandType } from './types/CommandType.js';
+import path from 'path';
+// import better-logging
+betterLogging(console);
 /**
  * @class ZumitoFramework
  * @description The main class of the framework.
@@ -95,6 +97,21 @@ export class ZumitoFramework {
      */
     app;
     /**
+     * The Status Manager instance.
+     * @type {StatusManager}
+     * @private
+     * @see {@link StatusManager}
+     */
+    statusManager;
+    /**
+     * Event emitter for the framework.
+     * All events related to the framework are emitted from here.
+     * @type {EventEmitter}
+     * @private
+     * @see {@link https://nodejs.org/api/events.html#events_class_eventemitter}
+     */
+    eventEmitter = new EventEmitter();
+    /**
      * @constructor
      * @param {FrameworkSettings} settings - The settings to use for the framework.
      * @param {(framework: ZumitoFramework) => void} [callback] - A callback to be called when the framework has finished initializing.
@@ -132,6 +149,9 @@ export class ZumitoFramework {
         this.startApiServer();
         await this.registerModules();
         await this.refreshSlashCommands();
+        if (this.settings.statusOptions) {
+            this.statusManager = new StatusManager(this, this.settings.statusOptions);
+        }
     }
     async initializeDatabase() {
         const folders = ['db', 'db/tingodb'];
