@@ -1,35 +1,40 @@
+import * as fs from 'fs';
+import * as url from 'url';
+
 import {
+    Client,
     GuildMember,
     PermissionsBitField,
     SlashCommandBuilder,
     TextChannel,
-    Client,
 } from 'discord.js';
+
+import { ApiResponse } from './definitions/ApiResponse.js';
 import { Command } from './types/Command.js';
+import { CommandArgDefinition } from './types/CommandArgDefinition.js';
+import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
+import { CommandType } from './types/CommandType.js';
+import { DatabaseModel } from './types/DatabaseModel.js';
+import { EventEmitter } from 'events';
+import { FrameworkEvent } from './types/FrameworkEvent.js';
 import { FrameworkSettings } from './types/FrameworkSettings.js';
 import { Module } from './types/Module.js';
-import { ApiResponse } from './definitions/ApiResponse.js';
-import { FrameworkEvent } from './types/FrameworkEvent.js';
-import { baseModule } from './baseModule/index.js';
-import { TranslationManager } from './TranslationManager.js';
-
-import express from 'express';
-import * as fs from 'fs';
-import path from 'path';
-// import better-logging
-import { betterLogging } from 'better-logging';
-betterLogging(console);
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
+import { StatusManager } from './managers/StatusManager.js';
+import { TranslationManager } from './TranslationManager.js';
+import { baseModule } from './baseModule/index.js';
+import { betterLogging } from 'better-logging';
 import canario from 'canario';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import express from 'express';
 import http from 'http';
-import * as url from 'url';
-import { CommandType } from './types/CommandType.js';
-import { CommandArgDefinition } from './types/CommandArgDefinition.js';
-import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
-import { DatabaseModel } from './types/DatabaseModel.js';
+import path from 'path';
+
+// import better-logging
+
+betterLogging(console);
 
 /**
  * @class ZumitoFramework
@@ -47,6 +52,7 @@ import { DatabaseModel } from './types/DatabaseModel.js';
  * });
  */
 export class ZumitoFramework {
+    
     /**
      * The discord client instance.
      * @type {Client}
@@ -54,18 +60,21 @@ export class ZumitoFramework {
      * @see {@link https://discord.js.org/#/docs/main/stable/class/Client}
      */
     client: Client;
+    
     /**
      * The settings for the framework.
      * @type {FrameworkSettings}
      * @private
      */
     settings: FrameworkSettings;
+    
     /**
      * The modules loaded in the framework.
      * @type {Map<string, Module>}
      * @private
      */
     modules: Map<string, Module>;
+    
     /**
      * The commands loaded in the framework.
      * @type {Map<string, Command>}
@@ -73,6 +82,7 @@ export class ZumitoFramework {
      * @see {@link Command}
      */
     commands: Map<string, Command>;
+    
     /**
      * The events loaded in the framework.
      * @type {Map<string, FrameworkEvent>}
@@ -80,6 +90,7 @@ export class ZumitoFramework {
      * @see {@link FrameworkEvent}
      */
     events: Map<string, FrameworkEvent>;
+    
     /**
      * The Translation Manager for the framework.
      * @type {TranslationManager}
@@ -88,12 +99,14 @@ export class ZumitoFramework {
      */
     translations: TranslationManager;
     routes: any;
+    
     /**
      * The database models loaded in the framework.
      * @type {Array<DatabaseModel>}
      * @private
      */
     models: Array<DatabaseModel>;
+    
     /**
      * The canario database schema instance.
      * @type {canario.Schema}
@@ -101,6 +114,7 @@ export class ZumitoFramework {
      * @see {@link https://www.npmjs.com/package/canario}
      */
     database: any;
+    
     /**
      * The ExpressJS app instance.
      * @type {express.Application}
@@ -108,6 +122,23 @@ export class ZumitoFramework {
      * @see {@link https://expressjs.com/en/4x/api.html#app}
      */
     app: any;
+    
+    /**
+     * The Status Manager instance.
+     * @type {StatusManager}
+     * @private
+     * @see {@link StatusManager}
+     */
+    statusManager: StatusManager;
+
+    /**	
+     * Event emitter for the framework.
+     * All events related to the framework are emitted from here.
+     * @type {EventEmitter}
+     * @private
+     * @see {@link https://nodejs.org/api/events.html#events_class_eventemitter}
+     */
+    eventEmitter: EventEmitter = new EventEmitter();
 
     /**
      * @constructor
@@ -150,6 +181,9 @@ export class ZumitoFramework {
 
         await this.registerModules();
         await this.refreshSlashCommands();
+        if (this.settings.statusOptions) {
+            this.statusManager = new StatusManager(this, this.settings.statusOptions);
+        }
     }
 
     private async initializeDatabase() {

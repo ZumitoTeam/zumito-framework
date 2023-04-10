@@ -1,3 +1,5 @@
+import { StatusManagerOptions } from "./StatusManagerOptions";
+
 export interface FrameworkSettings {
     database: any;
     logLevel?: number;
@@ -8,4 +10,5 @@ export interface FrameworkSettings {
         clientId: string;
     };
     defaultPrefix?: string;
+    statusOptions?: StatusManagerOptions;
 }
