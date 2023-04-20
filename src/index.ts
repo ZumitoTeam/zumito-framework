@@ -20,6 +20,7 @@ import { TextFormatter } from './utils/TextFormatter.js';
 import { Translation } from './types/Translation.js';
 import { TranslationManager } from './TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
+import * as discord from 'discord.js';
 
 export {
     ZumitoFramework,
@@ -44,5 +45,6 @@ export {
     DatabaseModel,
     PresenceDataRule,
     RuledPresenceData,
-    StatusManagerOptions
+    StatusManagerOptions,
+    discord,
 };

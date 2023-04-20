@@ -11,6 +11,7 @@ import {
     ButtonInteraction,
     CommandInteraction,
     SelectMenuInteraction,
+    StringSelectMenuInteraction,
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
 
@@ -191,7 +192,7 @@ export abstract class Module {
         });
         const interaction = args.find(
             (arg: any) =>
-                arg instanceof SelectMenuInteraction ||
+                arg instanceof StringSelectMenuInteraction ||
                 arg instanceof CommandInteraction ||
                 arg instanceof ButtonInteraction
         );

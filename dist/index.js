@@ -12,4 +12,5 @@ import { TextFormatter } from './utils/TextFormatter.js';
 import { Translation } from './types/Translation.js';
 import { TranslationManager } from './TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
-export { ZumitoFramework, Command, Module, CommandArguments, FrameworkEvent, Translation, TranslationManager, ApiResponse, CommandType, ButtonPressed, TextFormatter, EmojiFallback, DatabaseConfigLoader, DatabaseModel };
+import * as discord from 'discord.js';
+export { ZumitoFramework, Command, Module, CommandArguments, FrameworkEvent, Translation, TranslationManager, ApiResponse, CommandType, ButtonPressed, TextFormatter, EmojiFallback, DatabaseConfigLoader, DatabaseModel, discord, };

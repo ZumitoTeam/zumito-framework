@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import boxen from 'boxen';
 import * as fs from 'fs';
 import path from 'path';
-import { ButtonInteraction, CommandInteraction, SelectMenuInteraction, } from 'discord.js';
+import { ButtonInteraction, CommandInteraction, StringSelectMenuInteraction, } from 'discord.js';
 export class Module {
     path;
     framework;
@@ -135,7 +135,7 @@ export class Module {
         args.forEach((arg) => {
             finalArgs[arg.constructor.name.toLowerCase()] = arg;
         });
-        const interaction = args.find((arg) => arg instanceof SelectMenuInteraction ||
+        const interaction = args.find((arg) => arg instanceof StringSelectMenuInteraction ||
             arg instanceof CommandInteraction ||
             arg instanceof ButtonInteraction);
         if (interaction) {

@@ -7,7 +7,7 @@ export declare class MessageCreate extends FrameworkEvent {
     autocorrect(str: string, words: string[]): any;
     getErrorEmbed(error: any, parse: any): {
         embeds: EmbedBuilder[];
-        components: ActionRowBuilder<import("discord.js").AnyComponentBuilder>[];
+        components: ActionRowBuilder<import("@discordjs/builders").AnyComponentBuilder>[];
         allowedMentions: {
             repliedUser: boolean;
         };

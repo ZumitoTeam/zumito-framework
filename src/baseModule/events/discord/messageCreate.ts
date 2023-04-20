@@ -4,8 +4,10 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    ChannelType,
     Client,
     EmbedBuilder,
+    GuildChannel,
     Interaction,
     ModalSubmitInteraction,
     PermissionsBitField,
@@ -204,7 +206,9 @@ export class MessageCreate extends FrameworkEvent {
                 try {
                     message.reply(content);
                 } catch (e) {
-                    channel.send(content);
+                    if (channel.type !== ChannelType.GuildStageVoice) {
+                        channel.send(content);
+                    }
                 }
             }
         }

@@ -1,5 +1,5 @@
 import * as url from 'url';
-import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, PermissionsBitField, } from 'discord.js';
+import { ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, EmbedBuilder, PermissionsBitField, } from 'discord.js';
 import ErrorStackParser from 'error-stack-parser';
 import { FrameworkEvent } from '../../../types/FrameworkEvent.js';
 import { ZumitoFramework } from '../../../ZumitoFramework.js';
@@ -141,7 +141,9 @@ export class MessageCreate extends FrameworkEvent {
                     message.reply(content);
                 }
                 catch (e) {
-                    channel.send(content);
+                    if (channel.type !== ChannelType.GuildStageVoice) {
+                        channel.send(content);
+                    }
                 }
             }
         }
