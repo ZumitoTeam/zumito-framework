@@ -47,5 +47,13 @@
     "typedoc": "^0.23.14",
     "typescript": "^4.8.3"
   },
-  "type": "module"
+  "type": "module",
+  "exports": {
+    "./discord": "./dist/discord/index.js"
+  },
+  "typesVersions": {
+    "*": {
+      "discord": ["dist/discord/index.d.ts"]
+    }
+  }
 }
