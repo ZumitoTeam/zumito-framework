@@ -20,4 +20,5 @@ import { Translation } from './types/Translation.js';
 import { TranslationManager } from './TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
-export { ZumitoFramework, FrameworkSettings, Command, Module, CommandParameters, CommandArguments, FrameworkEvent, Translation, TranslationManager, ApiResponse, SelectMenuParameters, CommandType, CommandArgDefinition, CommandChoiceDefinition, ButtonPressed, ButtonPressedParams, TextFormatter, EmojiFallback, DatabaseConfigLoader, DatabaseModel, PresenceDataRule, RuledPresenceData, StatusManagerOptions, discord, };
+import { EventParameters } from './types/EventParameters.js';
+export { ZumitoFramework, FrameworkSettings, Command, Module, CommandParameters, CommandArguments, FrameworkEvent, Translation, TranslationManager, ApiResponse, SelectMenuParameters, CommandType, CommandArgDefinition, CommandChoiceDefinition, ButtonPressed, ButtonPressedParams, TextFormatter, EmojiFallback, DatabaseConfigLoader, DatabaseModel, PresenceDataRule, RuledPresenceData, StatusManagerOptions, discord, EventParameters, };

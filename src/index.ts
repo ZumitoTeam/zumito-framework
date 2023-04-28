@@ -1,4 +1,8 @@
-import { PresenceDataRule, RuledPresenceData, StatusManagerOptions } from './types/StatusManagerOptions.js';
+import {
+    PresenceDataRule,
+    RuledPresenceData,
+    StatusManagerOptions,
+} from './types/StatusManagerOptions.js';
 
 import { ApiResponse } from './definitions/ApiResponse.js';
 import { ButtonPressed } from './types/Commands/ButtonPressed.js';
@@ -21,6 +25,7 @@ import { Translation } from './types/Translation.js';
 import { TranslationManager } from './TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
+import { EventParameters } from './types/EventParameters.js';
 
 export {
     ZumitoFramework,
@@ -47,4 +52,5 @@ export {
     RuledPresenceData,
     StatusManagerOptions,
     discord,
+    EventParameters,
 };
