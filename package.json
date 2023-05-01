@@ -42,6 +42,7 @@
     "@typescript-eslint/parser": "^5.48.2",
     "eslint": "^8.32.0",
     "eslint-config-prettier": "^8.6.0",
+    "eslint-plugin-check-file": "^2.2.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.3",
     "typedoc": "^0.23.14",
@@ -54,8 +55,12 @@
   },
   "typesVersions": {
     "*": {
-      ".": ["dist/index.d.ts"],
-      "discord": ["dist/discord/index.d.ts"]
+      ".": [
+        "dist/index.d.ts"
+      ],
+      "discord": [
+        "dist/discord/index.d.ts"
+      ]
     }
   },
   "repository": {

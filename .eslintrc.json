@@ -14,11 +14,20 @@
         "ecmaVersion": "latest",
         "sourceType": "module"
     },
-    "plugins": ["@typescript-eslint"],
+    "plugins": [
+        "@typescript-eslint",
+        "check-file"
+    ],
     "rules": {
         "lines-between-class-members": "off",
         "@typescript-eslint/lines-between-class-members": "off",
-        "newline-before-return": "off"
+        "newline-before-return": "off",
+        "check-file/filename-naming-convention": [
+            "error",
+            {
+              "**/*.{js,ts}": "PASCAL_CASE"
+            }
+        ]
     },
     "ignorePatterns": ["dist", "node_modules"]
 }
