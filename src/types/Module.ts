@@ -10,7 +10,7 @@ import path from 'path';
 import {
     ButtonInteraction,
     CommandInteraction,
-    SelectMenuInteraction,
+    ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
@@ -119,67 +119,46 @@ export abstract class Module {
         if (!fs.existsSync(path.join(this.path, 'events'))) return;
         const files = fs.readdirSync(path.join(this.path, 'events'));
         for (const file of files) {
-            if (file == 'discord') {
-                const moduleFileNames = fs.readdirSync(
-                    path.join(this.path, 'events', 'discord')
-                );
-                for (const moduleFileName of moduleFileNames) {
-                    if (
-                        moduleFileName.endsWith('.js') ||
-                        moduleFileName.endsWith('.ts')
-                    ) {
-                        let event = await import(
-                            'file://' +
-                                path.join(
-                                    this.path,
-                                    'events',
-                                    'discord',
-                                    moduleFileName
-                                )
-                        ).catch((e) => {
-                            console.error(
-                                `[🔄🔴 ] Error loading ${moduleFileName.slice(
-                                    0,
-                                    -3
-                                )} event on module ${this.constructor.name}`
-                            );
-                            console.log(
-                                boxen(e + '\n' + e.name + '\n' + e.stack, {
-                                    padding: 1,
-                                })
-                            );
-                        });
-                        event = Object.values(event)[0];
-                        event = new event();
-                        this.events.set(
-                            event.constructor.name.toLowerCase(),
-                            event
-                        );
-                        this.registerDiscordEvent(event);
-                    }
-                }
+            // if file is folder
+            if (fs.lstatSync(path.join(this.path, 'events', file)).isDirectory()) {
+                console.log('registering events folder ' + file);
+                this.registerEventsFolder(file);
             }
         }
     }
 
-    registerDiscordEvent(frameworkEvent: FrameworkEvent) {
-        if (frameworkEvent.disabled) return;
+    async registerEventsFolder(folder: string) {
+        const folderPath = path.join(this.path, 'events', folder);
+        if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                let event = await import(
+                    'file://' + path.join(folderPath, file)
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} event on module ${this.constructor.name}`
+                    );
+                });
+                event = Object.values(event)[0];
+                event = new event();
+                this.events.set(event.constructor.name.toLowerCase(), event);
+                this.registerEvent(event, folder);
+            }
+        }
+    }
 
+    registerEvent(frameworkEvent: FrameworkEvent, emitterName: string) {
+        if (frameworkEvent.disabled) return;
+        const once = frameworkEvent.once;
         const eventName =
             frameworkEvent.constructor.name.charAt(0).toLowerCase() +
             frameworkEvent.constructor.name.slice(1);
-        const emitter = this.framework.client;
-        const once = frameworkEvent.once; // A simple variable which returns if the event should run once
 
-        // Try catch block to throw an error if the code in try{} doesn't work
-        try {
-            emitter[once ? 'once' : 'on'](eventName, (...args) =>
-                frameworkEvent.execute(this.parseEventArgs(args))
-            ); // Run the event using the above defined emitter (client)
-        } catch (error) {
-            console.log(error, error.message, error, name);
-            console.error(error.stack); // If there is an error, console log the error stack message
-        }
+        this.framework.eventManager.addEventListener(emitterName, eventName, (...args: any[]) => {
+            const finalArgs = this.parseEventArgs(args);
+            frameworkEvent.execute(finalArgs);
+        }, { once });
     }
 
     parseEventArgs(args: any[]): any {
@@ -194,7 +173,8 @@ export abstract class Module {
             (arg: any) =>
                 arg instanceof StringSelectMenuInteraction ||
                 arg instanceof CommandInteraction ||
-                arg instanceof ButtonInteraction
+                arg instanceof ButtonInteraction ||
+                arg instanceof ModalSubmitInteraction
         );
         if (interaction) {
             finalArgs['interaction'] = interaction;

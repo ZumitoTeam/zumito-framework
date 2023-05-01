@@ -15,7 +15,7 @@ export class baseModule extends Module {
         this.events.set('messageCreate', new MessageCreate());
 
         this.events.forEach((event) => {
-            this.registerDiscordEvent(event);
+            this.registerEvent(event, 'discord');
         });
     }
 
