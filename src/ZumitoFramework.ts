@@ -31,6 +31,7 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import path from 'path';
+import { EventManager } from './managers/EventManager.js';
 
 // import better-logging
 
@@ -141,6 +142,14 @@ export class ZumitoFramework {
     eventEmitter: EventEmitter = new EventEmitter();
 
     /**
+     * Event manager for the framework.
+     * All events related to the framework and discord.js are handled here.
+     * @type {EventManager}
+     * @private
+     */
+    eventManager: EventManager;
+
+    /**
      * @constructor
      * @param {FrameworkSettings} settings - The settings to use for the framework.
      * @param {(framework: ZumitoFramework) => void} [callback] - A callback to be called when the framework has finished initializing.
@@ -152,6 +161,7 @@ export class ZumitoFramework {
         this.events = new Map();
         this.translations = new TranslationManager();
         this.models = [];
+        this.eventManager = new EventManager();
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
@@ -176,9 +186,12 @@ export class ZumitoFramework {
      */
     private async initialize() {
         await this.initializeDatabase();
-        this.initializeDiscordClient();
+        await this.initializeDiscordClient();
         this.startApiServer();
 
+        this.eventManager.addEventEmitter('discord', this.client);
+        this.eventManager.addEventEmitter('framework', this.eventEmitter);
+        
         await this.registerModules();
         await this.refreshSlashCommands();
         if (this.settings.statusOptions) {
@@ -369,14 +382,18 @@ export class ZumitoFramework {
      * Logs in to the Discord API using the provided token and logs a message when the client is ready.
      * @private
      */
-    private initializeDiscordClient() {
+    private async initializeDiscordClient() {
         this.client = new Client({
             intents: this.settings.discordClientOptions.intents,
         });
         this.client.login(this.settings.discordClientOptions.token);
-        this.client.on('ready', () => {
-            // Bot emoji
-            console.log('[🤖🟢] Discord client ready');
+
+        await new Promise<void>((resolve) => {
+            this.client.on('ready', () => {
+                // Bot emoji
+                console.log('[🤖🟢] Discord client ready');
+                resolve();
+            });
         });
     }
 

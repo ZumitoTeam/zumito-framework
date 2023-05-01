@@ -41,7 +41,7 @@ export class InteractionCreate extends FrameworkEvent {
                         default:
                             args.set(
                                 arg.name,
-                                option.value ||
+                                option.value || 
                                     option.user ||
                                     option.role ||
                                     option.channel ||
@@ -56,14 +56,7 @@ export class InteractionCreate extends FrameworkEvent {
                     }
                 }
             });
-            if (
-                ![
-                    CommandType.any,
-                    CommandType.separated,
-                    CommandType.slash,
-                ].includes(commandInstance.type)
-            )
-                return;
+            if (![CommandType.any, CommandType.separated, CommandType.slash,].includes(commandInstance.type) ) return;
             const trans = this.getTransMethod(
                 commandInstance,
                 framework,
@@ -74,21 +67,11 @@ export class InteractionCreate extends FrameworkEvent {
                 commandInstance.type === CommandType.slash
             ) {
                 await commandInstance.executeSlashCommand({
-                    client,
-                    interaction,
-                    args,
-                    framework,
-                    guildSettings,
-                    trans,
+                    client, interaction, args, framework, guildSettings, trans,
                 });
             } else {
                 await commandInstance.execute({
-                    client,
-                    interaction,
-                    args,
-                    framework,
-                    guildSettings,
-                    trans,
+                    client, interaction, args, framework, guildSettings, trans,
                 });
             }
         } else if (interaction.isButton()) {
@@ -101,9 +84,7 @@ export class InteractionCreate extends FrameworkEvent {
                 );
             // If the command has impements ButtonPress class then execute the method
             if (
-                commandInstance.constructor.prototype.hasOwnProperty(
-                    'buttonPressed'
-                )
+                commandInstance.constructor.prototype.hasOwnProperty('buttonPressed')
             ) {
                 commandInstance.buttonPressed({
                     path,
@@ -113,7 +94,7 @@ export class InteractionCreate extends FrameworkEvent {
                     guildSettings,
                 });
             }
-        } else if (interaction.isSelectMenu()) {
+        } else if (interaction.isStringSelectMenu()) {
             const path = interaction.customId.split('.');
             const commandInstance = framework.commands.get(path[0]);
             if (!commandInstance)
@@ -144,6 +125,27 @@ export class InteractionCreate extends FrameworkEvent {
                     guildSettings,
                     trans,
                 });
+            }
+        } else if (interaction.isModalSubmit()) {
+            const path = interaction.customId.split('.');
+            const commandInstance: any = framework.commands.get(path[0]);
+            if (!commandInstance) {
+                throw new Error(
+                    `Command ${path[0]} not found or modal id bad formatted`
+                );
+            }
+            if (commandInstance.modalSubmit) {
+                commandInstance.modalSubmit({
+                    path,
+                    interaction,
+                    client,
+                    framework,
+                    guildSettings,
+                });
+            } else {
+                framework.eventManager.emitEvent('modalSubmit', 'framework', {
+                    path, interaction, client, framework, guildSettings,
+                })
             }
         }
     }
