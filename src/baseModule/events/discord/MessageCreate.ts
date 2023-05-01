@@ -5,28 +5,24 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ChannelType,
-    Client,
     EmbedBuilder,
-    GuildChannel,
-    Interaction,
-    ModalSubmitInteraction,
     PermissionsBitField,
     TextChannel,
 } from 'discord.js';
 
 import { Command } from '../../../types/Command.js';
-import { CommandType } from '../../../types/CommandType.js';
 import ErrorStackParser from 'error-stack-parser';
 import { EventParameters } from '../../../types/EventParameters.js';
 import { FrameworkEvent } from '../../../types/FrameworkEvent.js';
 import { ZumitoFramework } from '../../../ZumitoFramework.js';
 import leven from 'leven';
 import path from 'path';
+import { InteractionIdGenerator } from '../../../utils/InteractionIdGenerator.js';
 
 export class MessageCreate extends FrameworkEvent {
     once = false;
 
-    async execute({ message, client, framework }: EventParameters) {
+    async execute({ message, framework }: EventParameters) {
         const channel = message.channel;
         const prefix = framework.settings.defaultPrefix;
         const args = ZumitoFramework.splitCommandLine(
@@ -118,7 +114,6 @@ export class MessageCreate extends FrameworkEvent {
                     message.guildId
                 );
                 const parsedArgs = new Map<string, any>();
-                const userMentionCount = 0;
                 for (let i = 0; i < args.length; i++) {
                     const arg = args[i];
                     const type = commandInstance.args[i]?.type;
@@ -156,6 +151,10 @@ export class MessageCreate extends FrameworkEvent {
                         }
                     }
                 }
+                const interactionIdGenerator = new InteractionIdGenerator(
+                    undefined,
+                    commandInstance.name
+                );
                 await commandInstance.execute({
                     message,
                     args: parsedArgs,
@@ -185,9 +184,6 @@ export class MessageCreate extends FrameworkEvent {
                         message.delete().catch(function () {
                             console.error("can't delete user command");
                         });
-                        const metadata = await fetch(
-                            'https://tulipo.ga/api/last_command/' + command
-                        ).then((res) => res.json());
                     } catch (err) {
                         console.error(err.name, err.message);
                     }
@@ -288,7 +284,6 @@ export class MessageCreate extends FrameworkEvent {
                 !e.fileName.includes('node:internal')
         );
         let stack = '';
-        const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         const path1 = path.resolve('./');
         const path2 = path1.replaceAll('\\', '/');
         stackFrames.forEach((frame) => {
