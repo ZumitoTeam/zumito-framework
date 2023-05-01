@@ -5,8 +5,7 @@
     },
     "extends": [
         "eslint:recommended",
-        "plugin:@typescript-eslint/recommended",
-        "plugin:prettier/recommended"
+        "plugin:@typescript-eslint/recommended"
     ],
     "overrides": [],
     "parser": "@typescript-eslint/parser",
