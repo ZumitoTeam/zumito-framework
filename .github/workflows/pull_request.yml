@@ -1,0 +1,61 @@
+# On pull request creation or update
+on:
+  pull_request:
+    branches:
+      - master
+
+name: Check Pull Request
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      # Setup Node.js environment v18
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
+      # Build
+      - name: Build
+        run: npm run build
+      - name: Publish dev tag
+        id: publish
+        run: |
+          # Get the latest published version
+          latest_version=$(npm view zumito-framework dist-tags --json | jq -r 'to_entries | max_by(.value) | .value')
+
+          # npm install semver
+          npm install semver
+          
+          # Increase the version number
+          new_version=$(node -p "require('semver').inc('$latest_version', 'patch')")
+          
+          # Update the package.json file
+          npm version "$new_version" --no-git-tag-version
+
+          # Log the new version to the console
+          echo "New version: $new_version"
+
+          # Auth
+          npm config set //registry.npmjs.org/:_authToken ${NODE_AUTH_TOKEN}
+          
+          # Publish the new version
+          npm publish --tag=beta
+
+          # Set the output variable
+          echo "::set-output name=new_version::$new_version"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - name: Comment on pull request
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            Beta tag version created: ${{ steps.publish.outputs.new_version }}.
+            You can install it with `npm install zumito-framework@${{ steps.publish.outputs.new_version }}`.
