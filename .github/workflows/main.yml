@@ -20,6 +20,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+      - name: Verify package has version changed
+        run: |
+          if [ -z "$(git diff --name-only HEAD~1)" ]; then
+            echo "No changes detected, exiting..."
+            exit 1
+          fi
       # Install dependencies
       - name: Install dependencies
         run: npm ci
