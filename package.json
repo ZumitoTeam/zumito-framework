@@ -16,7 +16,7 @@
     "publish-npm": "npm publish",
     "docs": "typedoc --out docs src"
   },
-  "author": "fernandomema",
+  "author": "ZumitoTeam",
   "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^1.7.0",
