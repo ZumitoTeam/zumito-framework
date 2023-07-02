@@ -1,0 +1,50 @@
+version: "3.9"
+services:
+  zdev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: zdev
+
+  zdb-mysql:
+    image: mysql:8.0.33-debian
+    container_name: zdb-mysql
+    volumes:
+      - zdb-mysql:/var/lib/mysql
+    env_file: .env
+    profiles:
+      - mysql
+
+  zdb-postgres:
+    image: postgres:15.3-alpine3.18
+    container_name: zdb-postgres
+    volumes:
+      - zdb-postgres:/var/lib/postgresql/data
+    env_file: .env
+    profiles:
+      - postgres
+
+  zdb-mongo:
+    image: mongo:6.0.7
+    container_name: zdb-mongo
+    volumes:
+      - zdb-mongo:/data/db
+    env_file: .env
+    profiles:
+      - mongo
+
+  zdb-couchdb:
+    image: couchdb:3.3.2
+    container_name: zdb-couchdb
+    volumes:
+      - zdb-couchdb:/opt/couchdb/data
+    env_file: .env
+    profiles:
+      - couchdb
+
+volumes:
+  zdb-mysql:
+  zdb-postgres:
+  zdb-mongo:
+  zdb-couchdb:
