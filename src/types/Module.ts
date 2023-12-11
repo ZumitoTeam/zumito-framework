@@ -62,7 +62,7 @@ export abstract class Module {
             // register watcher
             if (process.env.DEBUG) {
                 /*
-                    Debug only cause in prod environment commands should't be changed.
+                    Debug only cause in prod environment commands should't be changed in runtime.
                     Appart from that, esm module cache invalidation is not working properly
                     and can cause memory leaks and crashes.
                 */
@@ -210,12 +210,64 @@ export abstract class Module {
                 await this.registerTranslations(path.join(subpath, file));
             }
         }
+
+        // register watcher
+        if (process.env.DEBUG) {
+            /*
+                Debug only cause in prod environment translations should't be changed on runtime.
+                Appart from that, esm module cache invalidation is not working properly
+                and can cause memory leaks and crashes.
+            */
+            chokidar
+                .watch(path.resolve(path.join(this.path, 'translations')), {
+                    ignored: /^\./,
+                    persistent: true,
+                    ignoreInitial: true,
+                })
+                .on('add', this.onTranslationCreated.bind(this))
+                .on('change', this.onTranslationChanged.bind(this))
+                //.on('unlink', function(path) {console.log('File', path, 'has been removed');})
+                .on('error', this.onErrorLoadingTranslation.bind(this));
+        }
+    }
+
+    async onTranslationCreated(filePath: string) {
+        if (filePath.endsWith('.json')) {
+            const subpath = path.dirname(filePath).replace(this.path + '/translations', '');
+            const fileName = path.basename(filePath);
+            const json = await this.loadTranslationFile(subpath, fileName);
+            const lang = fileName.slice(0, -5);
+            const baseKey = subpath
+                ? subpath.substring(1).replaceAll('/', '.').replaceAll('\\', '.') + '.'
+                : '';
+            this.parseTranslation(baseKey, lang, json);
+            console.debug('[🆕🟢 ] translations file ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
+        }
+    }
+
+    async onTranslationChanged(filePath: string) {
+        if (filePath.endsWith('.json')) {
+            const subpath = path.dirname(filePath).replace(this.path + '/translations', '');
+            const fileName = path.basename(filePath);
+            const json = await this.loadTranslationFile(subpath, fileName);
+            const lang = fileName.slice(0, -5);
+            const baseKey = subpath
+                ? subpath.substring(1).replaceAll('/', '.').replaceAll('\\', '.') + '.'
+                : '';
+            this.parseTranslation(baseKey, lang, json);
+            console.debug('[🆕🟢 ] translations file ' + chalk.blue(filePath.replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' reloaded');
+        }
+    }
+
+    onErrorLoadingTranslation(error: Error) {
+        console.error('[🔄🔴 ] Error reloading translation file');
+        console.log(boxen(error + '\n' + error.stack, { padding: 1 }));
     }
 
     async loadTranslationFile(subpath: string, file: string) {
         if (subpath) subpath = subpath + '/';
         const json = await import(
-            'file://' + `${this.path}/translations/${subpath}${file}`,
+            'file://' + `${this.path}/translations/${subpath}${file}?update=${Date.now().toString()}`,
             {
                 assert: {
                     type: 'json',
