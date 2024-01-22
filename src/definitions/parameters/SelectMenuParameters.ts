@@ -1,6 +1,6 @@
 import { Client, Interaction, SelectMenuInteraction } from 'discord.js';
 
-import { ZumitoFramework } from '../ZumitoFramework.js';
+import { ZumitoFramework } from '../../ZumitoFramework.js';
 
 export interface SelectMenuParameters {
     path: string[];

@@ -1,6 +1,6 @@
 import { Client, PresenceData } from "discord.js";
 
-import { StatusManagerOptions } from "../types/StatusManagerOptions";
+import { StatusManagerOptions } from "../definitions/StatusManagerOptions";
 import { ZumitoFramework } from "../ZumitoFramework";
 
 export class StatusManager {

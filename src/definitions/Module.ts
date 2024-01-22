@@ -1,6 +1,6 @@
 import { ZumitoFramework } from '../ZumitoFramework.js';
-import { Command } from './Command.js';
-import { EventParameters } from './EventParameters.js';
+import { Command } from './commands/Command.js';
+import { EventParameters } from './parameters/EventParameters.js';
 import { FrameworkEvent } from './FrameworkEvent.js';
 import * as chokidar from 'chokidar';
 import chalk from 'chalk';

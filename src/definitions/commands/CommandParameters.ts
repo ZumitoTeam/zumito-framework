@@ -1,6 +1,6 @@
 import { Client, CommandInteraction, Message } from 'discord.js';
 
-import { ZumitoFramework } from '../ZumitoFramework.js';
+import { ZumitoFramework } from '../../ZumitoFramework.js';
 
 /**
  * @class CommandParameters

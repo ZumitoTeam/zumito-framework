@@ -1,4 +1,4 @@
-import { Translation } from './types/Translation.js';
+import { Translation } from '../definitions/Translation.js';
 
 export class TranslationManager {
     private translations: Map<string, Translation> = new Map();

@@ -1,5 +1,5 @@
 /* eslint-disable check-file/filename-naming-convention */
-import { Module } from '../types/Module.js';
+import { Module } from '../definitions/Module.js';
 import { ZumitoFramework } from '../ZumitoFramework.js';
 import { InteractionCreate } from './events/discord/InteractionCreate.js';
 import { MessageCreate } from './events/discord/MessageCreate.js';
