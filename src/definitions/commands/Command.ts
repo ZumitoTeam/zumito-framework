@@ -1,7 +1,7 @@
 import { CommandArgDefinition } from './CommandArgDefinition.js';
 import { CommandParameters } from './CommandParameters.js';
 import { CommandType } from './CommandType.js';
-import { SelectMenuParameters } from './SelectMenuParameters.js';
+import { SelectMenuParameters } from '../parameters/SelectMenuParameters.js';
 
 /**
  * @name Command

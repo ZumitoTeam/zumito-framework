@@ -10,14 +10,14 @@ import {
     TextChannel,
 } from 'discord.js';
 
-import { Command } from '../../../types/Command.js';
+import { Command } from '../../../definitions/commands/Command.js';
 import ErrorStackParser from 'error-stack-parser';
-import { EventParameters } from '../../../types/EventParameters.js';
-import { FrameworkEvent } from '../../../types/FrameworkEvent.js';
+import { EventParameters } from '../../../definitions/parameters/EventParameters.js';
+import { FrameworkEvent } from '../../../definitions/FrameworkEvent.js';
 import { ZumitoFramework } from '../../../ZumitoFramework.js';
 import leven from 'leven';
 import path from 'path';
-import { InteractionIdGenerator } from '../../../utils/InteractionIdGenerator.js';
+import { InteractionIdGenerator } from '../../../services/InteractionIdGenerator.js';
 
 export class MessageCreate extends FrameworkEvent {
     once = false;

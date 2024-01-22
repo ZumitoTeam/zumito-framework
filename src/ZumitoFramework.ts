@@ -9,20 +9,20 @@ import {
     TextChannel,
 } from 'discord.js';
 
-import { ApiResponse } from './definitions/ApiResponse.js';
-import { Command } from './types/Command.js';
-import { CommandArgDefinition } from './types/CommandArgDefinition.js';
-import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
-import { CommandType } from './types/CommandType.js';
-import { DatabaseModel } from './types/DatabaseModel.js';
+import { ApiResponse } from './definitions/api/ApiResponse.js';
+import { Command } from './definitions/commands/Command.js';
+import { CommandArgDefinition } from './definitions/commands/CommandArgDefinition.js';
+import { CommandChoiceDefinition } from './definitions/commands/CommandChoiceDefinition.js';
+import { CommandType } from './definitions/commands/CommandType.js';
+import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EventEmitter } from 'events';
-import { FrameworkEvent } from './types/FrameworkEvent.js';
-import { FrameworkSettings } from './types/FrameworkSettings.js';
-import { Module } from './types/Module.js';
+import { FrameworkEvent } from './definitions/FrameworkEvent.js';
+import { FrameworkSettings } from './definitions/FrameworkSettings.js';
+import { Module } from './definitions/Module.js';
 import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
-import { StatusManager } from './managers/StatusManager.js';
-import { TranslationManager } from './TranslationManager.js';
+import { StatusManager } from './services/StatusManager.js';
+import { TranslationManager } from './services/TranslationManager.js';
 import { baseModule } from './baseModule/index.js';
 import { betterLogging } from 'better-logging';
 import canario from 'canario';
@@ -31,7 +31,7 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import path from 'path';
-import { EventManager } from './managers/EventManager.js';
+import { EventManager } from './services/EventManager.js';
 
 // import better-logging
 

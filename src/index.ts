@@ -3,30 +3,30 @@ import {
     PresenceDataRule,
     RuledPresenceData,
     StatusManagerOptions,
-} from './types/StatusManagerOptions.js';
+} from './definitions/StatusManagerOptions.js';
 
-import { ApiResponse } from './definitions/ApiResponse.js';
-import { ButtonPressed } from './types/Commands/ButtonPressed.js';
-import { ButtonPressedParams } from './types/Commands/ButtonPressedParams.js';
-import { Command } from './types/Command.js';
-import { CommandArgDefinition } from './types/CommandArgDefinition.js';
-import { CommandArguments } from './types/CommandArguments.js';
-import { CommandChoiceDefinition } from './types/CommandChoiceDefinition.js';
-import { CommandParameters } from './types/CommandParameters.js';
-import { CommandType } from './types/CommandType.js';
-import { DatabaseConfigLoader } from './utils/DatabaseConfigLoader.js';
-import { DatabaseModel } from './types/DatabaseModel.js';
-import { EmojiFallback } from './utils/EmojiFallback.js';
-import { FrameworkEvent } from './types/FrameworkEvent.js';
-import { FrameworkSettings } from './types/FrameworkSettings.js';
-import { Module } from './types/Module.js';
-import { SelectMenuParameters } from './types/SelectMenuParameters.js';
-import { TextFormatter } from './utils/TextFormatter.js';
-import { Translation } from './types/Translation.js';
-import { TranslationManager } from './TranslationManager.js';
+import { ApiResponse } from './definitions/api/ApiResponse.js';
+import { ButtonPressed } from './definitions/parameters/ButtonPressed.js';
+import { ButtonPressedParams } from './definitions/parameters/ButtonPressedParams.js';
+import { Command } from './definitions/commands/Command.js';
+import { CommandArgDefinition } from './definitions/commands/CommandArgDefinition.js';
+import { CommandArguments } from './definitions/commands/CommandArguments.js';
+import { CommandChoiceDefinition } from './definitions/commands/CommandChoiceDefinition.js';
+import { CommandParameters } from './definitions/commands/CommandParameters.js';
+import { CommandType } from './definitions/commands/CommandType.js';
+import { DatabaseConfigLoader } from './services/DatabaseConfigLoader.js';
+import { DatabaseModel } from './definitions/DatabaseModel.js';
+import { EmojiFallback } from './services/EmojiFallback.js';
+import { FrameworkEvent } from './definitions/FrameworkEvent.js';
+import { FrameworkSettings } from './definitions/FrameworkSettings.js';
+import { Module } from './definitions/Module.js';
+import { SelectMenuParameters } from './definitions/parameters/SelectMenuParameters.js';
+import { TextFormatter } from './services/TextFormatter.js';
+import { Translation } from './definitions/Translation.js';
+import { TranslationManager } from './services/TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
-import { EventParameters } from './types/EventParameters.js';
+import { EventParameters } from './definitions/parameters/EventParameters.js';
 
 export {
     ZumitoFramework,
