@@ -33,6 +33,7 @@ import http from 'http';
 import path from 'path';
 import { EventManager } from './services/EventManager.js';
 import { CommandManager } from './services/CommandManager.js';
+import { ModuleManager } from './services/ModuleManager.js';
 
 // import better-logging
 
@@ -71,11 +72,11 @@ export class ZumitoFramework {
     settings: FrameworkSettings;
     
     /**
-     * The modules loaded in the framework.
-     * @type {Map<string, Module>}
+     * Module manager instance
+     * @type {ModuleManager}
      * @private
      */
-    modules: Map<string, Module>;
+    modules: ModuleManager;
     
     /**
      * The commands loaded in the framework.
@@ -157,7 +158,7 @@ export class ZumitoFramework {
      */
     constructor(settings: FrameworkSettings, callback?: (framework) => void) {
         this.settings = settings;
-        this.modules = new Map();
+        this.modules = new ModuleManager(this)
         this.commands = new CommandManager(this);
         this.events = new Map();
         this.translations = new TranslationManager();
@@ -314,64 +315,12 @@ export class ZumitoFramework {
 
     private async registerModule(modulesFolder, moduleName, module?: any) {
         if (!module) {
-            if (
-                fs.existsSync(path.join(modulesFolder, moduleName, 'index.js'))
-            ) {
-                module = await import(
-                    'file://' + path.join(modulesFolder, moduleName, 'index.js')
-                );
-                module = Object.values(module)[0];
-            } else if (
-                fs.existsSync(path.join(modulesFolder, moduleName, 'index.ts'))
-            ) {
-                module = await import(
-                    'file://' + path.join(modulesFolder, moduleName, 'index.ts')
-                );
-                module = Object.values(module)[0];
-            } else {
-                module = Module;
-            }
+            module = await this.modules.loadModuleFile(path.join(modulesFolder, moduleName));
         }
         // Create module instance
-        let moduleInstance: Module;
-        try {
-            moduleInstance = new module(
-                path.join(modulesFolder, moduleName),
-                this
-            );
-            await moduleInstance.initialize();
-            this.modules.set(
-                moduleName || moduleInstance.constructor.name,
-                moduleInstance
-            );
-        } catch (err) {
-            console.error(
-                `[📦🔴] Error loading module ${moduleName}: ${err.message}`
-            );
-            console.error(err.stack);
-        }
-
-        // Register module commands
-        if (moduleInstance.getCommands()) {
-            moduleInstance.getCommands().forEach((command) => {
-                this.commands.set(command.name, command);
-            });
-        }
-
-        // Register module events
-        this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
-
-        // Register models
-        moduleInstance.getModels().forEach((model: DatabaseModel) => {
-            this.models.push(model);
-        });
-
-        /*
-
-        // Register module routes
-        this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
-
-        */
+        const moduleInstance: Module = await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
+        // Register module in the framework
+        this.modules.registerModule(moduleInstance);
     }
 
     /**
