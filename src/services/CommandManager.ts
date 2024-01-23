@@ -35,7 +35,7 @@ export class CommandManager {
     /**
      * @deprecated
      */
-    size(): number {
+    get size(): number {
         return this.commands.size;
     }
 
