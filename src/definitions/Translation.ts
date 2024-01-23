@@ -1,8 +1,6 @@
 export class Translation {
     text: Map<string, string> = new Map();
 
-    constructor() {}
-
     get(language: string, params?: any): string {
         let text;
         if (this.has(language)) {

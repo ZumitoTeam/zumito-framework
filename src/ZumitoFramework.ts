@@ -32,6 +32,7 @@ import express from 'express';
 import http from 'http';
 import path from 'path';
 import { EventManager } from './services/EventManager.js';
+import { CommandManager } from './services/CommandManager.js';
 
 // import better-logging
 
@@ -78,11 +79,11 @@ export class ZumitoFramework {
     
     /**
      * The commands loaded in the framework.
-     * @type {Map<string, Command>}
+     * @type {CommandManager}
      * @private
      * @see {@link Command}
      */
-    commands: Map<string, Command>;
+    commands: CommandManager;
     
     /**
      * The events loaded in the framework.
@@ -157,7 +158,7 @@ export class ZumitoFramework {
     constructor(settings: FrameworkSettings, callback?: (framework) => void) {
         this.settings = settings;
         this.modules = new Map();
-        this.commands = new Map();
+        this.commands = new CommandManager(this);
         this.events = new Map();
         this.translations = new TranslationManager();
         this.models = [];
@@ -356,10 +357,6 @@ export class ZumitoFramework {
                 this.commands.set(command.name, command);
             });
         }
-        this.commands = new Map([
-            ...this.commands,
-            ...moduleInstance.getCommands(),
-        ]);
 
         // Register module events
         this.events = new Map([...this.events, ...moduleInstance.getEvents()]);
@@ -514,7 +511,7 @@ export class ZumitoFramework {
         const rest = new REST({ version: '10' }).setToken(
             this.settings.discordClientOptions.token
         );
-        const commands = Array.from(this.commands.values())
+        const commands = Array.from(this.commands.getAll().values())
             .filter(
                 (command: Command) =>
                     command.type == CommandType.slash ||

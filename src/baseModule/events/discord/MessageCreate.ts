@@ -32,13 +32,13 @@ export class MessageCreate extends FrameworkEvent {
 
         let commandInstance: Command;
         if (message.content.startsWith(prefix)) {
-            if (!framework.commands.has(command)) {
-                const commandNames = Array.from(framework.commands.keys());
+            if (!framework.commands.getAll().has(command)) {
+                const commandNames = Array.from(framework.commands.getAll().keys());
                 const correctedCommand = this.autocorrect(
                     command,
                     commandNames
                 );
-                if (framework.commands.has(correctedCommand)) {
+                if (framework.commands.getAll().has(correctedCommand)) {
                     commandInstance = framework.commands.get(correctedCommand);
                 } else {
                     return; // Command not found

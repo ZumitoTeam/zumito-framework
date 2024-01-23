@@ -21,7 +21,7 @@ export class InteractionCreate extends FrameworkEvent {
         }
 
         if (interaction.isCommand()) {
-            if (!framework.commands.has(interaction.commandName)) return;
+            if (!framework.commands.getAll().has(interaction.commandName)) return;
             const commandInstance: Command = framework.commands.get(
                 interaction.commandName
             );
