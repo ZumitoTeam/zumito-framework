@@ -23,7 +23,6 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { StatusManager } from './services/StatusManager.js';
 import { TranslationManager } from './services/TranslationManager.js';
-import { baseModule } from './baseModule/index.js';
 import { betterLogging } from 'better-logging';
 import canario from 'canario';
 import cookieParser from 'cookie-parser';
@@ -284,7 +283,7 @@ export class ZumitoFramework {
         } else return;
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-        await this.registerModule(__dirname, 'baseModule', baseModule);
+        await this.registerModule(__dirname, 'baseModule');
         const files = fs.readdirSync(modulesFolder);
         for (const file of files) {
             await this.registerModule(modulesFolder, file);
