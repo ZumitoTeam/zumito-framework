@@ -1,9 +1,9 @@
 import { ButtonInteraction, CommandInteraction } from 'discord.js';
 
-import { Command } from '../../../definitions/commands/Command.js';
-import { CommandType } from '../../../definitions/commands/CommandType.js';
-import { EventParameters } from '../../../definitions/parameters/EventParameters.js';
-import { FrameworkEvent } from '../../../definitions/FrameworkEvent.js';
+import { Command } from '../../../../../definitions/commands/Command.js';
+import { CommandType } from '../../../../../definitions/commands/CommandType.js';
+import { EventParameters } from '../../../../../definitions/parameters/EventParameters.js';
+import { FrameworkEvent } from '../../../../../definitions/FrameworkEvent.js';
 
 export class InteractionCreate extends FrameworkEvent {
     once = false;

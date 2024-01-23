@@ -283,7 +283,7 @@ export class ZumitoFramework {
         } else return;
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
-        await this.registerModule(__dirname, 'baseModule');
+        await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
         const files = fs.readdirSync(modulesFolder);
         for (const file of files) {
             await this.registerModule(modulesFolder, file);

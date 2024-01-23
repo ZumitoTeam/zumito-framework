@@ -1,4 +1,4 @@
-import { DatabaseModel } from '../../definitions/DatabaseModel.js';
+import { DatabaseModel } from '../../../../definitions/DatabaseModel.js';
 
 export class Guild extends DatabaseModel {
     getModel(schema: any) {
