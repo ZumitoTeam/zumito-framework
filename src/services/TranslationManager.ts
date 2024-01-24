@@ -97,9 +97,7 @@ export class TranslationManager {
                     )
                     .isDirectory()
             ) {
-                let key = baseKey;
-                if (baseKey != '') key += ".";
-                key += path.dirname(path.join(folderPath, file));
+                const key = baseKey + path.basename(path.join(folderPath, file)) + '.';
                 await this.registerTranslationsFromFolder(path.join(folderPath, file), key, watch);
             }
         }
