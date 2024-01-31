@@ -89,7 +89,6 @@ export class TranslationManager {
                 const json = await this.loadTranslationFile(path.join(folderPath, file));
                 const lang = file.slice(0, -5);
                 this.importTranslationsJson(baseKey, lang, json);
-                console.debug('[🆕🟢 ] Translations file ' + chalk.blue(path.join(folderPath, file)) + ' loaded');
             } else if (
                 fs
                     .lstatSync(
