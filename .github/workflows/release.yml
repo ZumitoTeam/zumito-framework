@@ -40,16 +40,10 @@ jobs:
           name: Release ${{ steps.tag_version.outputs.new_tag }}
           body: ${{ steps.tag_version.outputs.changelog }}
       - name: Set package.json version
-        id: package-json-bump
-        uses: jaywcjlove/github-action-package@main
-        with:
-          data: |
-            {
-              "version": "${{ steps.tag_version.outputs.new_tag }}"
-            }
+        run: npm version "${{ steps.tag_version.outputs.new_tag }}" --no-git-tag-version
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: npm audit signatures
       - name: "Publish NPM"
-        run: npm publish
+        run: npm publish --provenance -access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
