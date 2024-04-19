@@ -100,7 +100,7 @@ export class ZumitoFramework {
      * @see {@link TranslationManager}
      */
     translations: TranslationManager;
-    routes: any;
+    routes: Map<string, (req: Request, res: Response) => void>;
     
     /**
      * The database models loaded in the framework.
@@ -162,6 +162,7 @@ export class ZumitoFramework {
         this.events = new Map();
         this.translations = new TranslationManager();
         this.models = [];
+        this.routes = new Map();
         this.eventManager = new EventManager();
 
         if (settings.logLevel) {
@@ -188,12 +189,12 @@ export class ZumitoFramework {
     private async initialize() {
         await this.initializeDatabase();
         await this.initializeDiscordClient();
-        this.startApiServer();
 
         this.eventManager.addEventEmitter('discord', this.client);
         this.eventManager.addEventEmitter('framework', this.eventEmitter);
         
         await this.registerModules();
+        this.startApiServer();
         await this.refreshSlashCommands();
         if (this.settings.statusOptions) {
             this.statusManager = new StatusManager(this, this.settings.statusOptions);
@@ -254,6 +255,10 @@ export class ZumitoFramework {
         //Route Prefixes
         //this.app.use("/", indexRouter);
         //this.app.use("/api/", apiRouter);
+        console.log(this.routes.size);
+        this.routes.forEach((router, path) => {
+            this.app.use(path, router);
+        });
 
         // throw 404 if URL not found
         this.app.all('*', function (req, res) {

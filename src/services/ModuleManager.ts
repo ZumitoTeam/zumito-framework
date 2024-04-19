@@ -66,12 +66,8 @@ export class ModuleManager {
             this.framework.models.push(model);
         });
 
-        /*
-
         // Register module routes
-        this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
-
-        */
+        this.framework.routes = new Map([...this.framework.routes, ...module.getRoutes()] as any);
     }
 
     async instanceModule(module: any, rootPath: string, name?: string) {

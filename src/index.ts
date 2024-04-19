@@ -27,6 +27,7 @@ import { TranslationManager } from './services/TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
 import { EventParameters } from './definitions/parameters/EventParameters.js';
+import { FrameworkRouter } from './definitions/FrameworkRouter.js';
 
 export {
     ZumitoFramework,
@@ -54,4 +55,5 @@ export {
     StatusManagerOptions,
     discord,
     EventParameters,
+    FrameworkRouter,
 };
