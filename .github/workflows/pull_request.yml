@@ -3,6 +3,7 @@ on:
   pull_request:
     branches:
       - master
+      - next
 
 name: Check Pull Request
 
