@@ -20,6 +20,9 @@
   "license": "ISC",
   "dependencies": {
     "@discordjs/rest": "^1.7.0",
+    "@payloadcms/bundler-vite": "^0.1.6",
+    "@payloadcms/db-mongodb": "^1.4.4",
+    "@payloadcms/richtext-slate": "^1.5.0",
     "@types/express": "^4.17.13",
     "autocorrect": "^1.2.0",
     "better-logging": "^5.0.0",
@@ -34,6 +37,7 @@
     "express": "^4.18.1",
     "leven": "^4.0.0",
     "mongoose": "^6.6.5",
+    "payload": "^2.12.1",
     "tingodb": "^0.6.1"
   },
   "devDependencies": {

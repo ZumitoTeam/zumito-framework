@@ -33,6 +33,11 @@ import path from 'path';
 import { EventManager } from './services/EventManager.js';
 import { CommandManager } from './services/CommandManager.js';
 import { ModuleManager } from './services/ModuleManager.js';
+import payload from 'payload';
+import * as payloadConfig from 'payload/config';
+import * as payloadAdapter from '@payloadcms/db-mongodb';
+import * as payloadBundler from '@payloadcms/bundler-vite';
+import * as payloadEditor from '@payloadcms/richtext-slate';
 
 // import better-logging
 
@@ -194,7 +199,7 @@ export class ZumitoFramework {
         this.eventManager.addEventEmitter('framework', this.eventEmitter);
         
         await this.registerModules();
-        this.startApiServer();
+        await this.startApiServer();
         await this.refreshSlashCommands();
         if (this.settings.statusOptions) {
             this.statusManager = new StatusManager(this, this.settings.statusOptions);
@@ -229,13 +234,26 @@ export class ZumitoFramework {
      * Initializes and starts the API server using ExpressJS.
      * Sets up middleware, routes, and error handling for the server.
      */
-    startApiServer() {
+    async startApiServer() {
         this.app = express();
 
         const port = process.env.PORT || '80';
         this.app.set('port', port);
 
         const server = http.createServer(this.app);
+        await payload.init({
+            secret: process.env.SECRET_KEY,
+            express: this.app,
+            config: payloadConfig.buildConfig({
+                db: payloadAdapter.mongooseAdapter({
+                    url: process.env.DATABASE_URI!,
+                }),
+                admin: {
+                    bundler: payloadBundler.viteBundler(),
+                }, 
+                editor: payloadEditor.slateEditor({}) 
+            })
+          })        
         server.listen(port);
         server.on('error', (err) => {
             console.log('[🌐🔴] Error starting API web server: ' + err);
