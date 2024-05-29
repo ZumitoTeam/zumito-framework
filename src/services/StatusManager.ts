@@ -26,12 +26,22 @@ export class StatusManager {
      * @private
      */
     private delegateEvents() {
-        this.framework.client.on("ready", () => {
-            this.setStatus();
+        if (this.framework.client.isReady()) {
+            this.initialize();
+        } else {
+            (this.framework.client as Client).on("ready", () => {
+                this.initialize();
+            });
+        }
+    }
+
+    initialize() {
+        this.setStatus();
+        if (this.options.updateInterval) {
             setInterval(() => {
                 this.setStatus();
             }, this.options.updateInterval);
-        });
+        }
     }
 
     /**
