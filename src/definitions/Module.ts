@@ -12,6 +12,8 @@ import {
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
 import { CommandManager } from '../services/CommandManager.js';
+import { Request, Response } from 'express';
+import { FrameworkRouter } from "./FrameworkRouter.js";
 
 export abstract class Module {
     protected path: string;
@@ -19,6 +21,8 @@ export abstract class Module {
     protected commands: CommandManager;
     protected events: Map<string, FrameworkEvent> = new Map();
     protected models: Array<DatabaseModel> = [];
+    protected routes: Map<string, (req: Request, res: Response) => void> = new Map();
+
     
     protected commandManager: CommandManager; 
 
@@ -34,6 +38,7 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
+        await this.registerRoutes();
     }
 
     async registerCommands() {
@@ -164,5 +169,28 @@ export abstract class Module {
 
     getModels(): Array<DatabaseModel> {
         return this.models;
+    }
+
+    async registerRoutes(subpath = '') {
+        if (!fs.existsSync(path.join(this.path, 'routes', subpath))) return;
+        const files = fs.readdirSync(path.join(this.path, 'routes', subpath));
+        for (const file of files) {
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                const Router: any = await import('file://' + `${this.path}/routes/${subpath}/${file}`).then(r => Object.values(r)[0]);
+                if (Router.prototype instanceof FrameworkRouter) {
+                    const router = new Router(subpath ? '/' + subpath : '');
+                    this.routes = new Map([...this.routes, ...router.getRoutes()]);
+                } else {
+                    console.warn(`[🔄🟡 ] ${subpath}/${file} is not a valid router on module ${this.constructor.name} \n It must extend the FrameworkRouter class instead of ${Router.prototype}`);
+                    continue;
+                }
+            } else if (fs.lstatSync(path.join(this.path, 'routes', subpath, file)).isDirectory()) {
+                await this.registerRoutes(path.join(subpath, file));
+            }
+        }
+    }
+
+    getRoutes(): Map<string, (req: Request, res: Response) => void> {
+        return this.routes;
     }
 }
