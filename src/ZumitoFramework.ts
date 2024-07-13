@@ -33,6 +33,7 @@ import path from 'path';
 import { EventManager } from './services/EventManager.js';
 import { CommandManager } from './services/CommandManager.js';
 import { ModuleManager } from './services/ModuleManager.js';
+import { ServiceContainer } from './services/ServiceContainer.js';
 
 // import better-logging
 
@@ -167,6 +168,10 @@ export class ZumitoFramework {
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
         }
+
+        // Register this class instance to service container
+        ServiceContainer.addService(ZumitoFramework, [], true, this);
+        ServiceContainer.addService(TranslationManager, [], true, this.translations)
 
         this.initialize()
             .then(() => {
@@ -332,6 +337,7 @@ export class ZumitoFramework {
             intents: this.settings.discordClientOptions.intents,
         });
         this.client.login(this.settings.discordClientOptions.token);
+        ServiceContainer.addService(Client, [], true, this.client);
 
         await new Promise<void>((resolve) => {
             this.client.on('ready', () => {

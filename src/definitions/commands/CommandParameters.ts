@@ -14,7 +14,13 @@ export interface CommandParameters {
     message?: Message;
     interaction?: CommandInteraction;
     args: Map<string, any>;
+    /**
+     * @deprecated The client should be obtained from `ServiceContainer.get(Client);`
+     */
     client: Client;
+    /**
+     * @deprecated The frameworkInstance should be obtained from `ServiceContainer.get(ZumitoFramework);`
+     */
     framework: ZumitoFramework;
     guildSettings?: any;
     trans: (key: string, params?: any) => string;
