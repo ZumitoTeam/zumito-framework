@@ -27,6 +27,10 @@ import { TranslationManager } from './services/TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
 import { EventParameters } from './definitions/parameters/EventParameters.js';
+import { ServiceContainer } from './services/ServiceContainer.js';
+
+ServiceContainer.addService(TextFormatter, []);
+ServiceContainer.addService(EmojiFallback, []);
 
 export {
     ZumitoFramework,
@@ -54,4 +58,5 @@ export {
     StatusManagerOptions,
     discord,
     EventParameters,
+    ServiceContainer
 };
