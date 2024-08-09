@@ -4,23 +4,16 @@ import * as url from 'url';
 import {
     Client,
     GuildMember,
-    PermissionsBitField,
-    SlashCommandBuilder,
     TextChannel,
 } from 'discord.js';
 
 import { ApiResponse } from './definitions/api/ApiResponse.js';
 import { Command } from './definitions/commands/Command.js';
-import { CommandArgDefinition } from './definitions/commands/CommandArgDefinition.js';
-import { CommandChoiceDefinition } from './definitions/commands/CommandChoiceDefinition.js';
-import { CommandType } from './definitions/commands/CommandType.js';
 import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EventEmitter } from 'events';
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/FrameworkSettings.js';
 import { Module } from './definitions/Module.js';
-import { REST } from '@discordjs/rest';
-import { Routes } from 'discord-api-types/v9';
 import { StatusManager } from './services/StatusManager.js';
 import { TranslationManager } from './services/TranslationManager.js';
 import { betterLogging } from 'better-logging';
@@ -34,6 +27,11 @@ import { EventManager } from './services/EventManager.js';
 import { CommandManager } from './services/CommandManager.js';
 import { ModuleManager } from './services/ModuleManager.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
+import { GuildDataGetter } from './services/GuildDataGetter.js';
+import { RecursiveObjectMerger } from './services/RecursiveObjectMerger.js';
+import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
+import { CommandParser } from './services/CommandParser.js';
+import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 
 // import better-logging
 
@@ -285,13 +283,17 @@ export class ZumitoFramework {
             modulesFolder = `${process.cwd()}/modules`;
         } else if (fs.existsSync(`${process.cwd()}/src/modules`)) {
             modulesFolder = `${process.cwd()}/src/modules`;
-        } else return;
+        }
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
-        const files = fs.readdirSync(modulesFolder);
-        for (const file of files) {
-            await this.registerModule(modulesFolder, file);
+        if (modulesFolder) {
+            const files = fs.readdirSync(modulesFolder);
+            for (const file of files) {
+                await this.registerModule(modulesFolder, file);
+            }
+        } else if (this.settings.srcMode == 'monoBundle') {
+            await this.registerModule(process.cwd(), 'src')
         }
 
         // Define models
@@ -300,7 +302,7 @@ export class ZumitoFramework {
             if (!schemas[model.name]) {
                 schemas[model.name] = model.getModel(this.database);
             } else {
-                schemas[model.name] = MergeRecursive(
+                schemas[model.name] = RecursiveObjectMerger.merge(
                     schemas[model.name],
                     model.getModel(this.database)
                 );
@@ -349,218 +351,37 @@ export class ZumitoFramework {
     }
 
     /**
-     * From a command-line string, returns an array of parameters.
-     * @param commandLine
-     * @returns {string[]}
-     * @private
-     * @static
-     * @example
-     * // returns ['a', 'b', 'c']
-     * splitCommandLine('a b c');
-     * @example
-     * // returns ['a', 'b c']
-     * splitCommandLine('a "b c"');
+     * @deprecated use CommandParser service instead
      */
     public static splitCommandLine(commandLine) {
-        //log( 'commandLine', commandLine ) ;
-
-        //  Find a unique marker for the space character.
-        //  Start with '<SP>' and repeatedly append '@' if necessary to make it unique.
-        let spaceMarker = '<SP>';
-        while (commandLine.indexOf(spaceMarker) > -1) spaceMarker += '@';
-
-        //  Protect double-quoted strings.
-        //   o  Find strings of non-double-quotes, wrapped in double-quotes.
-        //   o  The final double-quote is optional to allow for an unterminated string.
-        //   o  Replace each double-quoted-string with what's inside the qouble-quotes,
-        //      after each space character has been replaced with the space-marker above.
-        //   o  The outer double-quotes will not be present.
-        const noSpacesInQuotes = commandLine.replace(
-            /"([^"]*)"?/g,
-            (fullMatch, capture) => {
-                return capture.replace(/ /g, spaceMarker);
-            }
-        );
-
-        //  Now that it is safe to do so, split the command-line at one-or-more spaces.
-        const mangledParamArray = noSpacesInQuotes.split(/ +/);
-
-        //  Create a new array by restoring spaces from any space-markers.
-        const paramArray = mangledParamArray.map((mangledParam) => {
-            return mangledParam.replace(RegExp(spaceMarker, 'g'), ' ');
-        });
-
-        return paramArray;
+        return CommandParser.splitCommandLine(commandLine);
     }
 
     /**
-     * Checks if a member has a permission in a channel.
-     * @param member
-     * @param channel
-     * @param permission
-     * @returns {Promise<boolean>}
-     * @public
-     * @example
-     * // returns true if the member has the permission
-     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES);
-     * @example
-     * // returns true if the member has the permission
-     * memberHasPermission(member, channel, Permissions.FLAGS.MANAGE_MESSAGES | Permissions.FLAGS.MANAGE_CHANNELS);
-     * @example
+     * @deprecated use MemberPermissionChecker service
      */
     public async memberHasPermission(
         member: GuildMember,
         channel: TextChannel,
         permission: bigint
     ) {
-        const memberPermission: PermissionsBitField =
-            await channel.permissionsFor(member);
-        return memberPermission.has(permission);
+        const memberPermissionChecker = ServiceContainer.getService(MemberPermissionChecker);
+        return await memberPermissionChecker(member, channel, permission);
     }
 
     /**
-     * Gets the guild settings from the database.
-     * If the guild is not in the database, it is added.
-     * @param guildId
-     * @returns {Promise<any>}
-     * @public
-     * @async
-     * @example
-     * // returns the guild settings
-     * getGuildSettings('123456789012345678');
-     * @example
-     * // returns the guild settings
-     * getGuildSettings(guild.id);
-     * @example
-     * // returns the guild settings
-     * getGuildSettings(message.guild.id);
-     * @example
-     * // returns the guild settings
-     * getGuildSettings(interaction.guild.id);
-     * @example
-     * // returns the guild settings
-     * getGuildSettings(interaction.guildId);
+     * @deprecated use GuildDataGetter service
      */
     public async getGuildSettings(guildId: string) {
-        const Guild = this.database.models.Guild;
-        return await new Promise((resolve, reject) => {
-            Guild.findOne({ where: { guild_id: guildId } }, (err, guild) => {
-                if (err) reject(err);
-                if (guild == null) {
-                    guild = new Guild({
-                        guild_id: guildId,
-                    });
-                    guild.save((err) => {
-                        if (err) reject(err);
-                        resolve(guild);
-                    });
-                } else {
-                    resolve(guild);
-                }
-            });
-        });
+        const guildDataGetter = ServiceContainer.getService(GuildDataGetter) as GuildDataGetter;
+        return await guildDataGetter.getGuildSettings(guildId);
     }
 
+    /**
+     * @deprecated
+     */
     async refreshSlashCommands() {
-        const rest = new REST({ version: '10' }).setToken(
-            this.settings.discordClientOptions.token
-        );
-        const commands = Array.from(this.commands.getAll().values())
-            .filter(
-                (command: Command) =>
-                    command.type == CommandType.slash ||
-                    command.type == CommandType.separated ||
-                    command.type == CommandType.any
-            )
-            .map((command: Command) => {
-                const slashCommand = new SlashCommandBuilder()
-                    .setName(command.name)
-                    .setDescription(
-                        this.translations.get(
-                            'command.' + command.name + '.description',
-                            'en'
-                        )
-                    );
-                if (command.args) {
-                    command.args.forEach((arg: CommandArgDefinition) => {
-                        let method;
-                        switch (arg.type) {
-                            case 'string':
-                                method = 'addStringOption';
-                                break;
-                            case 'user':
-                            case 'member':
-                                method = 'addUserOption';
-                                break;
-                            case 'channel':
-                                method = 'addChannelOption';
-                                break;
-                            case 'role':
-                                method = 'addRoleOption';
-                                break;
-                            default:
-                                throw new Error(
-                                    'Invalid argument type ' + arg.type
-                                );
-                        }
-                        slashCommand[method]((option) => {
-                            option.setName(arg.name);
-                            option.setDescription(
-                                this.translations.get(
-                                    'command.' +
-                                        command.name +
-                                        '.args.' +
-                                        arg.name +
-                                        '.description',
-                                    'en'
-                                )
-                            );
-                            option.setRequired(!arg.optional);
-                            if (arg.choices) {
-                                // if arg.choices is function, call it
-                                if (typeof arg.choices == 'function') {
-                                    arg.choices =
-                                        arg.choices() as CommandChoiceDefinition[];
-                                }
-                                arg.choices.forEach((choice) => {
-                                    option.addChoices({
-                                        name: choice.name,
-                                        value: choice.value,
-                                    });
-                                });
-                            }
-                            return option;
-                        });
-                    });
-                }
-                return slashCommand.toJSON();
-            });
-        const data: any = await rest.put(
-            Routes.applicationCommands(
-                this.settings.discordClientOptions.clientId
-            ),
-            { body: commands }
-        );
-        console.debug(
-            `Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`
-        );
+        const slashCommandRefresher = ServiceContainer.getService(SlashCommandRefresher) as SlashCommandRefresher;
+        slashCommandRefresher.refreshSlashCommands();
     }
-}
-
-function MergeRecursive(obj1, obj2) {
-    for (const p in obj2) {
-        try {
-            // Property in destination object set; update its value.
-            if (obj2[p].constructor == Object) {
-                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-            } else {
-                obj1[p] = obj2[p];
-            }
-        } catch (e) {
-            // Property in destination object not set; create it and set its value.
-            obj1[p] = obj2[p];
-        }
-    }
-
-    return obj1;
 }
