@@ -19,8 +19,9 @@ class ServiceContainerManager {
     }
 
     getService(serviceClass: any) {
-        const service = this.services.get(serviceClass.name);
-        if (!service) throw new Error(`Service ${serviceClass.name} not found`);
+        const classname = typeof serviceClass === 'string' ? serviceClass : serviceClass.name;
+        const service = this.services.get(classname);
+        if (!service) throw new Error(`Service ${classname} not found`);
         if (service.singleton && service.instance) return service.instance;
         const dependencies = service.dependencies.map(dependency => this.getService(dependency));
         const instance = new service.class(...dependencies);
