@@ -156,6 +156,11 @@ export class ZumitoFramework {
      */
     constructor(settings: FrameworkSettings, callback?: (framework) => void) {
         this.settings = settings;
+        
+        // Register this class instance to service container
+        ServiceContainer.addService(ZumitoFramework, [], true, this);
+        ServiceContainer.addService(TranslationManager, [], true, this.translations)
+        
         this.modules = new ModuleManager(this)
         this.commands = new CommandManager(this);
         this.events = new Map();
@@ -166,10 +171,6 @@ export class ZumitoFramework {
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
         }
-
-        // Register this class instance to service container
-        ServiceContainer.addService(ZumitoFramework, [], true, this);
-        ServiceContainer.addService(TranslationManager, [], true, this.translations)
 
         this.initialize()
             .then(() => {
