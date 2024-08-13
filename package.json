@@ -24,7 +24,6 @@
     "autocorrect": "^1.2.0",
     "better-logging": "^5.0.0",
     "boxen": "^7.0.0",
-    "canario": "^1.0.1",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
     "cookie-parser": "^1.4.6",
@@ -34,7 +33,8 @@
     "express": "^4.18.1",
     "leven": "^4.0.0",
     "mongoose": "^6.6.5",
-    "tingodb": "^0.6.1"
+    "tingodb": "^0.6.1",
+    "zumito-db": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.16",
