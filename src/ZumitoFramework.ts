@@ -17,7 +17,7 @@ import { Module } from './definitions/Module.js';
 import { StatusManager } from './services/StatusManager.js';
 import { TranslationManager } from './services/TranslationManager.js';
 import { betterLogging } from 'better-logging';
-import canario from 'canario';
+import zumitoDb from 'zumito-db';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -109,10 +109,10 @@ export class ZumitoFramework {
     models: Array<DatabaseModel>;
     
     /**
-     * The canario database schema instance.
-     * @type {canario.Schema}
+     * The zumito-db database schema instance.
+     * @type {zumitoDb.Schema}
      * @private
-     * @see {@link https://www.npmjs.com/package/canario}
+     * @see {@link https://www.npmjs.com/package/zumito-db}
      */
     database: any;
     
@@ -211,7 +211,7 @@ export class ZumitoFramework {
                 fs.mkdirSync(folder);
             }
         }
-        this.database = new canario.Schema(
+        this.database = new zumitoDb.Schema(
             this.settings?.database?.type || 'tingodb',
             this.settings?.database || {}
         );
