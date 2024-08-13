@@ -32,6 +32,7 @@ import { GuildDataGetter } from './services/GuildDataGetter.js';
 import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
+import { ErrorHandler } from './services/ErrorHandler.js';
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, []);
@@ -40,6 +41,7 @@ ServiceContainer.addService(MemberPermissionChecker, []);
 ServiceContainer.addService(CommandParser, []);
 ServiceContainer.addService(SlashCommandRefresher, [ZumitoFramework.name]);
 
+ServiceContainer.addService(ErrorHandler, ['ZumitoFramework']);
 
 export {
     ZumitoFramework,
@@ -71,4 +73,5 @@ export {
     GuildDataGetter,
     SlashCommandRefresher,
     CommandParser,
+    ErrorHandler,
 };

@@ -12,9 +12,12 @@ import {
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
 import { CommandManager } from '../services/CommandManager.js';
+import { ServiceContainer } from '../services/ServiceContainer.js';
+import { ModuleParameters } from './parameters/ModuleParameters.js';
 
 export abstract class Module {
     protected path: string;
+    protected parameters: ModuleParameters;
     protected framework: ZumitoFramework;
     protected commands: CommandManager;
     protected events: Map<string, FrameworkEvent> = new Map();
@@ -22,10 +25,11 @@ export abstract class Module {
     
     protected commandManager: CommandManager; 
 
-    constructor(path, framework) {
+    constructor(path, parameters?: ModuleParameters) {
         this.path = path;
-        this.framework = framework;
-        this.commands = new CommandManager(framework);
+        this.parameters = parameters;
+        this.framework = ServiceContainer.getService(ZumitoFramework) as ZumitoFramework;
+        this.commands = new CommandManager(this.framework);
         
     }
 

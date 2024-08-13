@@ -9,14 +9,20 @@ import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { CommandType } from "../definitions/commands/CommandType.js";
 import { CommandArgDefinition } from "../definitions/commands/CommandArgDefinition.js";
 import { CommandChoiceDefinition } from "../definitions/commands/CommandChoiceDefinition.js";
+import { CommandLoadOptions } from "../definitions/CommandLoadOptions";
+import { ErrorHandler } from "./ErrorHandler";
+import { ServiceContainer } from "./ServiceContainer";
+import { ErrorType } from "../definitions/ErrorType";
 
 export class CommandManager {
 
     protected commands: Map<string, Command>;
     protected framework: ZumitoFramework;
+    protected errorHandler: ErrorHandler;
 
     constructor(framework) {
         this.commands = new Map<string, Command>;
+        this.errorHandler = ServiceContainer.getService(ErrorHandler);
         this.framework = framework;
     }
 
@@ -58,7 +64,14 @@ export class CommandManager {
             console.log(e + '\n' + e.name + '\n' + e.stack);
         });
         command = Object.values(command)[0];
-        command = new command();
+        try {
+            command = new command();
+        } catch(error: any) {
+            this.errorHandler.handleError(error, {
+                type: ErrorType.CommandInstance,
+                command: command,
+            })
+        }
         this.framework.commands.set(command.constructor.name.toLowerCase(), command);
         console.debug('[🆕🟢 ] Command ' + chalk.blue(filePath.toString().replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
         return command;
@@ -71,14 +84,17 @@ export class CommandManager {
      * @param folderPath - Absolute path to commands folder
      * @returns {Promise<Map<string, Command>>}
      */
-    async loadCommandsFolder(folderPath: string): Promise<Map<string, any>> {
+    async loadCommandsFolder(folderPath: string, options?: CommandLoadOptions): Promise<Map<string, any>> {
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
             if (file.endsWith('d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 const command = await this.loadCommandFile(path.join(folderPath, file));
+                const commandName = command.constructor.name.toLowerCase();
+                if (options?.blacklist && options.blacklist.includes(commandName)) continue;
+                if (options?.whitelist && !options.whitelist.includes(commandName)) continue;
                 this.commands.set(
-                    command.constructor.name.toLowerCase(),
+                    options?.renames?.[commandName] || commandName,
                     command
                 );
             }

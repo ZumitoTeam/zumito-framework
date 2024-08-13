@@ -3,6 +3,7 @@ import { DatabaseModel } from "../definitions/DatabaseModel.js";
 import { Module } from "../definitions/Module.js";
 import fs from 'fs';
 import path from 'path';
+import { ErrorHandler } from "./ErrorHandler.js";
 
 export class ModuleManager {
 
@@ -79,8 +80,7 @@ export class ModuleManager {
         if (module.constructor) {
             try {
                 moduleInstance = new module(
-                    rootPath,
-                    this.framework
+                    rootPath
                 );
                 await moduleInstance.initialize();
                 this.modules.set(
