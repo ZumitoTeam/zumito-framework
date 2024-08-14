@@ -32,6 +32,8 @@ import { RecursiveObjectMerger } from './services/RecursiveObjectMerger.js';
 import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
+import { Route } from './definitions/Route.js';
+import { ModuleParameters } from './definitions/parameters/ModuleParameters.js';
 
 // import better-logging
 
@@ -99,7 +101,7 @@ export class ZumitoFramework {
      * @see {@link TranslationManager}
      */
     translations: TranslationManager;
-    routes: any;
+    routes: Route[] = [];
     
     /**
      * The database models loaded in the framework.
@@ -193,13 +195,13 @@ export class ZumitoFramework {
     private async initialize() {
         await this.initializeDatabase();
         await this.initializeDiscordClient();
-        this.startApiServer();
 
         this.eventManager.addEventEmitter('discord', this.client);
         this.eventManager.addEventEmitter('framework', this.eventEmitter);
         
         await this.registerModules();
         await this.refreshSlashCommands();
+        this.startApiServer();
         if (this.settings.statusOptions) {
             this.statusManager = new StatusManager(this, this.settings.statusOptions);
         }
@@ -260,6 +262,12 @@ export class ZumitoFramework {
         //this.app.use("/", indexRouter);
         //this.app.use("/api/", apiRouter);
 
+        this.routes.forEach(route => {
+            this.app[route.method](route.path, function (req, res) {
+                return route.execute(req, res);
+            });
+        })
+
         // throw 404 if URL not found
         this.app.all('*', function (req, res) {
             return ApiResponse.notFoundResponse(res, 'Page not found');
@@ -288,7 +296,18 @@ export class ZumitoFramework {
         }
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+        if (this.settings.bundles && this.settings.bundles.length > 0) {
+            for (let bundle of this.settings.bundles) {
+                await this.registerBundle(bundle.path, bundle.options);
+            }
+        }
         await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
+        if (fs.existsSync(`${process.cwd()}/node_modules/.zumitoBundles`)) {
+            const files = fs.readdirSync(`${process.cwd()}/node_modules/.zumitoBundles`);
+            for (const file of files) {
+                await this.registerModule(`${process.cwd()}/node_modules/.zumitoBundles`, file);
+            }
+        }
         if (modulesFolder) {
             const files = fs.readdirSync(modulesFolder);
             for (const file of files) {
@@ -328,6 +347,14 @@ export class ZumitoFramework {
         // Create module instance
         const moduleInstance: Module = await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
         // Register module in the framework
+        this.modules.registerModule(moduleInstance);
+    }
+
+    private async registerBundle(bundlePath, bundleOptions: ModuleParameters) {
+        console.log(bundlePath);
+        const bundle = await this.modules.loadModuleFile(bundlePath);
+        const bundleName = path.basename(bundlePath);
+        const moduleInstance: Module = await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
         this.modules.registerModule(moduleInstance);
     }
 
@@ -371,8 +398,8 @@ export class ZumitoFramework {
         channel: TextChannel,
         permission: bigint
     ) {
-        const memberPermissionChecker = ServiceContainer.getService(MemberPermissionChecker);
-        return await memberPermissionChecker(member, channel, permission);
+        const memberPermissionChecker = ServiceContainer.getService(MemberPermissionChecker) as MemberPermissionChecker;
+        return await memberPermissionChecker.hasPermissionOnChannel(member, channel, permission);
     }
 
     /**
@@ -391,5 +418,9 @@ export class ZumitoFramework {
     async refreshSlashCommands() {
         const slashCommandRefresher = ServiceContainer.getService(SlashCommandRefresher) as SlashCommandRefresher;
         slashCommandRefresher.refreshSlashCommands();
+    }
+
+    async registerRoute(route: Route) {
+        this.routes.push(route)
     }
 }

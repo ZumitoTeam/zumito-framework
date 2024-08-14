@@ -7,6 +7,7 @@ import { FrameworkEvent } from '../../../../../definitions/FrameworkEvent.js';
 
 export class InteractionCreate extends FrameworkEvent {
     once = false;
+    source = 'discord';
 
     async execute({
         interaction,
