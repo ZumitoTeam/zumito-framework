@@ -21,6 +21,7 @@ import { InteractionIdGenerator } from '../../../../../services/InteractionIdGen
 
 export class MessageCreate extends FrameworkEvent {
     once = false;
+    source = 'discord';
 
     async execute({ message, framework }: EventParameters) {
         const channel = message.channel;

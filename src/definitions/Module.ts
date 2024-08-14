@@ -38,6 +38,7 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
+        await this.registerRoutes();
     }
 
     async registerCommands() {
@@ -90,7 +91,7 @@ export abstract class Module {
                 event = Object.values(event)[0];
                 event = new event();
                 this.events.set(event.constructor.name.toLowerCase(), event);
-                this.registerEvent(event, folder);
+                this.registerEvent(event, event.source);
             }
         }
     }
@@ -168,5 +169,34 @@ export abstract class Module {
 
     getModels(): Array<DatabaseModel> {
         return this.models;
+    }
+
+    async registerRoutes() {
+
+        const folderPath = path.join(this.path, 'routes');
+        if (fs.existsSync(folderPath)) {
+            await this.registerRoutesFolder('');
+        } 
+    }
+
+    async registerRoutesFolder(folder: string) {
+        const folderPath = path.join(this.path, 'routes', folder);
+        if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                let route = await import(
+                    'file://' + path.join(folderPath, file)
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} route on module ${this.constructor.name}`
+                    );
+                });
+                route = Object.values(route)[0];
+                route = new route();
+                this.framework.registerRoute(route);
+            }
+        }
     }
 }

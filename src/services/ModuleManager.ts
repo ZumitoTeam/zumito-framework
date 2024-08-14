@@ -4,6 +4,7 @@ import { Module } from "../definitions/Module.js";
 import fs from 'fs';
 import path from 'path';
 import { ErrorHandler } from "./ErrorHandler.js";
+import { ModuleParameters } from "../definitions/parameters/ModuleParameters.js";
 
 export class ModuleManager {
 
@@ -75,12 +76,13 @@ export class ModuleManager {
         */
     }
 
-    async instanceModule(module: any, rootPath: string, name?: string) {
+    async instanceModule(module: any, rootPath: string, name?: string, options?: ModuleParameters) {
         let moduleInstance: Module;
         if (module.constructor) {
             try {
                 moduleInstance = new module(
-                    rootPath
+                    rootPath,
+                    options
                 );
                 await moduleInstance.initialize();
                 this.modules.set(

@@ -33,6 +33,7 @@ import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { ErrorHandler } from './services/ErrorHandler.js';
+import { Route, RouteMethod } from './definitions/Route.js';
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, []);
@@ -74,4 +75,6 @@ export {
     SlashCommandRefresher,
     CommandParser,
     ErrorHandler,
+    Route,
+    RouteMethod
 };

@@ -36,5 +36,5 @@ class ServiceContainerManager {
     }
 
 }
-
-export const ServiceContainer = new ServiceContainerManager()
+if (!global.ServiceContainer) global.ServiceContainer = new ServiceContainerManager();
+export const ServiceContainer = global.ServiceContainer;
