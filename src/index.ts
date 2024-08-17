@@ -36,7 +36,7 @@ import { ErrorHandler } from './services/ErrorHandler.js';
 import { Route, RouteMethod } from './definitions/Route.js';
 
 ServiceContainer.addService(TextFormatter, []);
-ServiceContainer.addService(EmojiFallback, []);
+ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);
 ServiceContainer.addService(GuildDataGetter, [ZumitoFramework.name]);
 ServiceContainer.addService(MemberPermissionChecker, []);
 ServiceContainer.addService(CommandParser, []);
