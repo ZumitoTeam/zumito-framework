@@ -10,7 +10,7 @@ import {
 import { ApiResponse } from './definitions/api/ApiResponse.js';
 import { Command } from './definitions/commands/Command.js';
 import { DatabaseModel } from './definitions/DatabaseModel.js';
-import { EventEmitter } from 'events';
+import { EventEmitter } from "tseep";
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/FrameworkSettings.js';
 import { Module } from './definitions/Module.js';
@@ -139,7 +139,7 @@ export class ZumitoFramework {
      * @private
      * @see {@link https://nodejs.org/api/events.html#events_class_eventemitter}
      */
-    eventEmitter: EventEmitter = new EventEmitter();
+    eventEmitter = new EventEmitter();
 
     /**
      * Event manager for the framework.
@@ -352,14 +352,18 @@ export class ZumitoFramework {
     }
 
     /**
-     * @deprecated use CommandParser service instead
+     * Use CommandParser service instead
+     * 
+     * @deprecated 
      */
     public static splitCommandLine(commandLine) {
         return CommandParser.splitCommandLine(commandLine);
     }
 
     /**
-     * @deprecated use MemberPermissionChecker service
+     * Use MemberPermissionChecker service
+     * 
+     * @deprecated
      */
     public async memberHasPermission(
         member: GuildMember,
@@ -371,7 +375,9 @@ export class ZumitoFramework {
     }
 
     /**
-     * @deprecated use GuildDataGetter service
+     * Use GuildDataGetter service
+     * 
+     * @deprecated 
      */
     public async getGuildSettings(guildId: string) {
         const guildDataGetter = ServiceContainer.getService(GuildDataGetter) as GuildDataGetter;

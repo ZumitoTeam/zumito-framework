@@ -12,7 +12,7 @@ export class StatusManager {
     framework: ZumitoFramework;
     options: StatusManagerOptions;
     statusQueue: PresenceData[] = [];
-    currentStatusIndex: number = 0;
+    currentStatusIndex = 0;
 
     constructor(framework: ZumitoFramework, options: StatusManagerOptions) {
         this.framework = framework;
@@ -56,7 +56,7 @@ export class StatusManager {
             this.framework.client.user.setPresence(presenceData);
             this.framework.eventEmitter.emit("statusChanged", presenceData);
         } else {
-            let status = this.getNextStatus();
+            const status = this.getNextStatus();
             if (status) {
                 this.framework.client.user.setPresence(status);
                 this.framework.eventEmitter.emit("statusChanged", status);
@@ -74,7 +74,7 @@ export class StatusManager {
         const matchingStatuses: PresenceData[] = [];
         this.options.statuses.forEach((status) => matchingStatuses.push(status));
         this.options.RuledStatuses.forEach((status) => {
-            let match = status.rules.some((rule) => {
+            const match = status.rules.some((rule) => {
                 if (rule.startTime && rule.startTime > now) return false;
                 if (rule.endTime && rule.endTime < now) return false;
                 return true;
@@ -90,7 +90,7 @@ export class StatusManager {
      * @private
      */
     private getNextStatus(): PresenceData | undefined {
-        let statuses = this.getMatchingStatuses();
+        const statuses = this.getMatchingStatuses();
         if (statuses.length === 0) return undefined;
         if (this.options.order === "random") {
             return this.getRandomStatus();

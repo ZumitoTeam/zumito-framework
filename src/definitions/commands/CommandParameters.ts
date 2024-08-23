@@ -15,11 +15,17 @@ export interface CommandParameters {
     interaction?: CommandInteraction;
     args: Map<string, any>;
     /**
-     * @deprecated The client should be obtained from `ServiceContainer.get(Client);`
+     * Discord client instance
+     * The client should be obtained from `ServiceContainer.get(Client);`
+     * 
+     * @deprecated 
      */
     client: Client;
     /**
-     * @deprecated The frameworkInstance should be obtained from `ServiceContainer.get(ZumitoFramework);`
+     * ZumitoFramework instance
+     * The frameworkInstance should be obtained from `ServiceContainer.get(ZumitoFramework);`
+     * 
+     * @deprecated 
      */
     framework: ZumitoFramework;
     guildSettings?: any;

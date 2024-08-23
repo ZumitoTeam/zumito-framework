@@ -109,7 +109,7 @@ export abstract class Module {
     }
 
     parseEventArgs(args: any[]): any {
-        const finalArgs: EventParameters = {
+        const finalArgs: any = {
             framework: this.framework,
             client: this.framework.client,
         };

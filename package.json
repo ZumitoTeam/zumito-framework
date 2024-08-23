@@ -34,10 +34,11 @@
     "leven": "^4.0.0",
     "mongoose": "^6.6.5",
     "tingodb": "^0.6.1",
+    "tseep": "^1.2.2",
     "zumito-db": "^1.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.7.16",
+    "@types/node": "^18.19.44",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
     "eslint": "^8.32.0",
