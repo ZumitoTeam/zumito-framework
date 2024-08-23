@@ -159,7 +159,6 @@ export class ZumitoFramework {
         
         // Register this class instance to service container
         ServiceContainer.addService(ZumitoFramework, [], true, this);
-        ServiceContainer.addService(TranslationManager, [], true, this.translations)
         
         this.modules = new ModuleManager(this)
         this.commands = new CommandManager(this);
@@ -167,6 +166,8 @@ export class ZumitoFramework {
         this.translations = new TranslationManager();
         this.models = [];
         this.eventManager = new EventManager();
+
+        ServiceContainer.addService(TranslationManager, [], true, this.translations)
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
