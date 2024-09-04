@@ -28,6 +28,13 @@ import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
 import { EventParameters } from './definitions/parameters/EventParameters.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
+import { GuildDataGetter } from './services/GuildDataGetter.js';
+import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
+import { CommandParser } from './services/CommandParser.js';
+import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
+import { ErrorHandler } from './services/ErrorHandler.js';
+import { Route, RouteMethod } from './definitions/Route.js';
+import { RouteMiddleware } from './definitions/RouteMiddleware.js';
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, []);
@@ -58,5 +65,12 @@ export {
     StatusManagerOptions,
     discord,
     EventParameters,
-    ServiceContainer
+    ServiceContainer,
+    GuildDataGetter,
+    SlashCommandRefresher,
+    CommandParser,
+    ErrorHandler,
+    Route,
+    RouteMiddleware,
+    RouteMethod,
 };

@@ -34,6 +34,14 @@ import { EventManager } from './services/EventManager.js';
 import { CommandManager } from './services/CommandManager.js';
 import { ModuleManager } from './services/ModuleManager.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
+import { GuildDataGetter } from './services/GuildDataGetter.js';
+import { RecursiveObjectMerger } from './services/RecursiveObjectMerger.js';
+import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
+import { CommandParser } from './services/CommandParser.js';
+import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
+import { Route } from './definitions/Route.js';
+import { ModuleParameters } from './definitions/parameters/ModuleParameters.js';
+import { RouteMiddleware } from './definitions/RouteMiddleware.js';
 
 // import better-logging
 
@@ -101,7 +109,8 @@ export class ZumitoFramework {
      * @see {@link TranslationManager}
      */
     translations: TranslationManager;
-    routes: any;
+    routes: Route[] = [];
+    routeMiddlewares: RouteMiddleware[] = [];
     
     /**
      * The database models loaded in the framework.
@@ -260,6 +269,31 @@ export class ZumitoFramework {
         //this.app.use("/", indexRouter);
         //this.app.use("/api/", apiRouter);
 
+        this.routeMiddlewares.forEach((routeMiddleware: RouteMiddleware) => {
+            if (routeMiddleware.path) {
+                this.app.use(
+                    routeMiddleware.path,
+                    routeMiddleware.callback
+                );
+            } else {
+                this.app.use(routeMiddleware.callback);
+            }
+        })
+
+        this.routes.forEach((route: Route) => {
+            this.app[route.method](route.path, function (req, res) {
+                return route.execute(req, res);
+            });
+        })
+
+        const modules: Module[] = Object.values(this.modules.getAll());
+        for (const module of modules) {
+            const publicPath = path.join(module.getPath(), 'public')
+            if (!fs.existsSync(publicPath)) continue;
+            this.app.use(`/assets/${path.basename(module.getPath())}`)
+        }
+
+
         // throw 404 if URL not found
         this.app.all('*', function (req, res) {
             return ApiResponse.notFoundResponse(res, 'Page not found');
@@ -288,6 +322,11 @@ export class ZumitoFramework {
         } else return;
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+        if (this.settings.bundles && this.settings.bundles.length > 0) {
+            for (const bundle of this.settings.bundles) {
+                await this.registerBundle(bundle.path, bundle.options);
+            }
+        }
         await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
         const files = fs.readdirSync(modulesFolder);
         for (const file of files) {
@@ -324,6 +363,13 @@ export class ZumitoFramework {
         // Create module instance
         const moduleInstance: Module = await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
         // Register module in the framework
+        this.modules.registerModule(moduleInstance);
+    }
+
+    private async registerBundle(bundlePath, bundleOptions: ModuleParameters) {
+        const bundle = await this.modules.loadModuleFile(bundlePath);
+        const bundleName = path.basename(bundlePath);
+        const moduleInstance: Module = await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
         this.modules.registerModule(moduleInstance);
     }
 
@@ -462,105 +508,15 @@ export class ZumitoFramework {
     }
 
     async refreshSlashCommands() {
-        const rest = new REST({ version: '10' }).setToken(
-            this.settings.discordClientOptions.token
-        );
-        const commands = Array.from(this.commands.getAll().values())
-            .filter(
-                (command: Command) =>
-                    command.type == CommandType.slash ||
-                    command.type == CommandType.separated ||
-                    command.type == CommandType.any
-            )
-            .map((command: Command) => {
-                const slashCommand = new SlashCommandBuilder()
-                    .setName(command.name)
-                    .setDescription(
-                        this.translations.get(
-                            'command.' + command.name + '.description',
-                            'en'
-                        )
-                    );
-                if (command.args) {
-                    command.args.forEach((arg: CommandArgDefinition) => {
-                        let method;
-                        switch (arg.type) {
-                            case 'string':
-                                method = 'addStringOption';
-                                break;
-                            case 'user':
-                            case 'member':
-                                method = 'addUserOption';
-                                break;
-                            case 'channel':
-                                method = 'addChannelOption';
-                                break;
-                            case 'role':
-                                method = 'addRoleOption';
-                                break;
-                            default:
-                                throw new Error(
-                                    'Invalid argument type ' + arg.type
-                                );
-                        }
-                        slashCommand[method]((option) => {
-                            option.setName(arg.name);
-                            option.setDescription(
-                                this.translations.get(
-                                    'command.' +
-                                        command.name +
-                                        '.args.' +
-                                        arg.name +
-                                        '.description',
-                                    'en'
-                                )
-                            );
-                            option.setRequired(!arg.optional);
-                            if (arg.choices) {
-                                // if arg.choices is function, call it
-                                if (typeof arg.choices == 'function') {
-                                    arg.choices =
-                                        arg.choices() as CommandChoiceDefinition[];
-                                }
-                                arg.choices.forEach((choice) => {
-                                    option.addChoices({
-                                        name: choice.name,
-                                        value: choice.value,
-                                    });
-                                });
-                            }
-                            return option;
-                        });
-                    });
-                }
-                return slashCommand.toJSON();
-            });
-        const data: any = await rest.put(
-            Routes.applicationCommands(
-                this.settings.discordClientOptions.clientId
-            ),
-            { body: commands }
-        );
-        console.debug(
-            `Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`
-        );
-    }
-}
-
-function MergeRecursive(obj1, obj2) {
-    for (const p in obj2) {
-        try {
-            // Property in destination object set; update its value.
-            if (obj2[p].constructor == Object) {
-                obj1[p] = MergeRecursive(obj1[p], obj2[p]);
-            } else {
-                obj1[p] = obj2[p];
-            }
-        } catch (e) {
-            // Property in destination object not set; create it and set its value.
-            obj1[p] = obj2[p];
-        }
+        const slashCommandRefresher = ServiceContainer.getService(SlashCommandRefresher) as SlashCommandRefresher;
+        slashCommandRefresher.refreshSlashCommands();
     }
 
-    return obj1;
+    async registerRoute(route: Route) {
+        this.routes.push(route)
+    }
+
+    async registerRouteMiddleware(routeMiddleware: RouteMiddleware) {
+        this.routeMiddlewares.push(routeMiddleware)
+    }
 }

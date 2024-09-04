@@ -34,6 +34,8 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerModels();
+        await this.registerRoutes();
+        await this.registerRouteMiddlewares();
     }
 
     async registerCommands() {
@@ -164,5 +166,67 @@ export abstract class Module {
 
     getModels(): Array<DatabaseModel> {
         return this.models;
+    }
+
+    async registerRoutes() {
+
+        const folderPath = path.join(this.path, 'routes');
+        if (fs.existsSync(folderPath)) {
+            await this.registerRoutesFolder('');
+        } 
+    }
+
+    async registerRouteMiddlewares() {
+        const folderPath = path.join(this.path, 'routeMiddlewares');
+        if (fs.existsSync(folderPath)) {
+            await this.registerRouteMiddlewaresFolder('');
+        } 
+    }
+
+    async registerRoutesFolder(folder: string) {
+        const folderPath = path.join(this.path, 'routes', folder);
+        if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                let route = await import(
+                    'file://' + path.join(folderPath, file)
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} route on module ${this.constructor.name}`
+                    );
+                });
+                route = Object.values(route)[0];
+                route = new route();
+                this.framework.registerRoute(route);
+            }
+        }
+    }
+
+    async registerRouteMiddlewaresFolder(folder: string) {
+        const folderPath = path.join(this.path, 'routeMiddlewares', folder);
+        if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
+        const files = fs.readdirSync(folderPath);
+        for (const file of files) {
+            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                let route = await import(
+                    'file://' + path.join(folderPath, file)
+                ).catch((e) => {
+                    console.error(
+                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} routeMiddleware on module ${this.constructor.name}`
+                    );
+                });
+                route = Object.values(route)[0];
+                route = new route();
+                this.framework.registerRouteMiddleware(route);
+            }
+        }
+    }
+
+
+    public getPath() {
+        return this.path;
     }
 }
