@@ -12,7 +12,7 @@ import { Command } from './definitions/commands/Command.js';
 import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EventEmitter } from "tseep";
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
-import { FrameworkSettings } from './definitions/FrameworkSettings.js';
+import { FrameworkSettings } from './definitions/settings/FrameworkSettings.js';
 import { Module } from './definitions/Module.js';
 import { StatusManager } from './services/StatusManager.js';
 import { TranslationManager } from './services/TranslationManager.js';
@@ -169,7 +169,9 @@ export class ZumitoFramework {
         this.models = [];
         this.eventManager = new EventManager();
 
-        ServiceContainer.addService(TranslationManager, [], true, this.translations)
+        ServiceContainer.addService(TranslationManager, [], true, this.translations);
+        ServiceContainer.addService(CommandManager, [], true, this.commands);
+        ServiceContainer.addService(EventManager, [], true, this.eventManager);
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
@@ -297,7 +299,7 @@ export class ZumitoFramework {
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         if (this.settings.bundles && this.settings.bundles.length > 0) {
-            for (let bundle of this.settings.bundles) {
+            for (const bundle of this.settings.bundles) {
                 await this.registerBundle(bundle.path, bundle.options);
             }
         }

@@ -53,6 +53,7 @@ export class CommandManager {
      * @returns {Promise<Command>}
      */
     async loadCommandFile(filePath: string): Promise<any> {
+        let loaded = false;
         // Validate file has .ts or .js extension
         if (!filePath.endsWith('.js') && !filePath.endsWith('.ts')) {
             throw new Error("File must be a .ts or .js");
@@ -63,18 +64,21 @@ export class CommandManager {
             console.error('[🆕🔴 ] Error loading command ' + chalk.blue(filePath.toString().replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')));
             console.log(e + '\n' + e.name + '\n' + e.stack);
         });
+        if (!command) return
         command = Object.values(command)[0];
         try {
             command = new command();
+            this.framework.commands.set(command.constructor.name.toLowerCase(), command);
+            console.debug('[🆕🟢 ] Command ' + chalk.blue(filePath.toString().replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
+            loaded = true;
         } catch(error: any) {
             this.errorHandler.handleError(error, {
                 type: ErrorType.CommandInstance,
                 command: command,
             })
         }
-        this.framework.commands.set(command.constructor.name.toLowerCase(), command);
-        console.debug('[🆕🟢 ] Command ' + chalk.blue(filePath.toString().replace(/^.*[\\\/]/, '').split('.').slice(0, -1).join('.')) + ' loaded');
-        return command;
+        
+        if (loaded) return command;
     }
 
     /**
@@ -90,13 +94,15 @@ export class CommandManager {
             if (file.endsWith('d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 const command = await this.loadCommandFile(path.join(folderPath, file));
-                const commandName = command.constructor.name.toLowerCase();
-                if (options?.blacklist && options.blacklist.includes(commandName)) continue;
-                if (options?.whitelist && !options.whitelist.includes(commandName)) continue;
-                this.commands.set(
-                    options?.renames?.[commandName] || commandName,
-                    command
-                );
+                if (command) {
+                    const commandName = command.constructor.name.toLowerCase();
+                    if (options?.blacklist && options.blacklist.includes(commandName)) continue;
+                    if (options?.whitelist && !options.whitelist.includes(commandName)) continue;
+                    this.commands.set(
+                        options?.renames?.[commandName] || commandName,
+                        command
+                    );
+                }
             }
         }
         return this.commands;

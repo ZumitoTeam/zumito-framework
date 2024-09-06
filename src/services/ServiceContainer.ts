@@ -18,15 +18,25 @@ class ServiceContainerManager {
         });
     }
 
-    getService(serviceClass: any) {
-        const serviceName = typeof serviceClass == 'string' ? serviceClass : serviceClass.name;
+    getService<T>(serviceClass: new (...args: any[]) => T | string): T {
+        const serviceName = typeof serviceClass === 'string' ? serviceClass : serviceClass.name;
         const service = this.services.get(serviceName);
         if (!service) throw new Error(`Service ${serviceName} not found`);
-        if (service.singleton && service.instance) return service.instance;
-        const dependencies = service.dependencies.map(dependency => this.getService(dependency));
+        if (service.singleton && service.instance) return service.instance as T;
+        const dependencies = service.dependencies.map(dependency => this.getServiceByName(dependency));
         const instance = new service.class(...dependencies);
         if (service.singleton) service.instance = instance;
-        return instance;
+        return instance as T;
+    }
+
+    getServiceByName<T>(serviceName: string): T {
+        const service = this.services.get(serviceName);
+        if (!service) throw new Error(`Service ${serviceName} not found`);
+        if (service.singleton && service.instance) return service.instance as T;
+        const dependencies = service.dependencies.map(dependency => this.getServiceByName(dependency));
+        const instance = new service.class(...dependencies);
+        if (service.singleton) service.instance = instance;
+        return instance as T;
     }
 
     addInstance(serviceClass: any, instance: any) {
@@ -37,4 +47,4 @@ class ServiceContainerManager {
 
 }
 if (!global.ServiceContainer) global.ServiceContainer = new ServiceContainerManager();
-export const ServiceContainer = global.ServiceContainer;
+export const ServiceContainer: ServiceContainerManager = global.ServiceContainer;
