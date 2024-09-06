@@ -1,3 +1,6 @@
+import { Guild } from "discord.js";
+import { CommandArgDefinition } from "../definitions/commands/CommandArgDefinition";
+
 export class CommandParser {
 
     /**
@@ -43,5 +46,47 @@ export class CommandParser {
         });
 
         return paramArray;
+    }
+
+    public static async parseFromSplitedString(args, argDefinitions: CommandArgDefinition[], guild: Guild) {
+        const parsedArgs = new Map<string, any>();
+        const errors = [];
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+            const type = argDefinitions[i]?.type;
+            if (type) {
+                if (type == 'member' || type == 'user') {
+                    const member =
+                        await guild.members.cache.get(
+                            arg.replace(/[<@!>]/g, '')
+                        );
+                    if (member) {
+                        if (type == 'user') {
+                            parsedArgs.set(
+                                argDefinitions[i].name,
+                                member.user
+                            );
+                        } else {
+                            parsedArgs.set(
+                                argDefinitions[i].name,
+                                member
+                            );
+                        }
+                    } else {
+                        errors.push('Invalid user.');
+                    }
+                } else if (type == 'string') {
+                    parsedArgs.set(
+                        argDefinitions[i]?.name || i.toString(),
+                        arg
+                    );
+                }
+            }
+        }
+        return {
+            validated: errors.length == 0,
+            errors,
+            parsedArgs,
+        }
     }
 }

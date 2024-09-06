@@ -7,6 +7,10 @@
         "moduleResolution": "node",
         "esModuleInterop": true,
         "skipLibCheck": true,
+        "paths": {
+            "@definitions/*": ["./src/definitions/*"],
+            "@services/*": ["./src/services/*"]
+        }
     },
     "include": ["src/**/*"]
 }

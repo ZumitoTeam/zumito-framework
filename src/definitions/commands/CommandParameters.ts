@@ -10,9 +10,9 @@ import { ZumitoFramework } from '../../ZumitoFramework.js';
  * @property {interaction} interaction - The interaction that triggered the command.
  * @property {args} args - The arguments passed to the command.
  */
-export interface CommandParameters {
-    message?: Message;
-    interaction?: CommandInteraction;
+
+
+export interface BaseCommandParameters {
     args: Map<string, any>;
     /**
      * Discord client instance
@@ -31,3 +31,16 @@ export interface CommandParameters {
     guildSettings?: any;
     trans: (key: string, params?: any) => string;
 }
+
+
+export type SlashCommandParameters = BaseCommandParameters & {
+    interaction: CommandInteraction;
+    message?: null;
+}
+
+export type PrefixCommandParameters = BaseCommandParameters & {
+    message: Message;
+    interaction?: null;
+}
+
+export type CommandParameters = PrefixCommandParameters | SlashCommandParameters;
