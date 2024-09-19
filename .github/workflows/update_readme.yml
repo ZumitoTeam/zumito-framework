@@ -6,7 +6,6 @@ jobs:
     permissions: write-all
     runs-on: ubuntu-latest
     steps:
-      steps:
       - name: checkout
         uses: actions/checkout@v2
 
