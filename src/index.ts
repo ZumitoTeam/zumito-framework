@@ -34,6 +34,7 @@ import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { ErrorHandler } from './services/ErrorHandler.js';
 import { Route, RouteMethod } from './definitions/Route.js';
+import { PrefixRetriever } from './services/PrefixRetriever.js';
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);
@@ -41,8 +42,9 @@ ServiceContainer.addService(GuildDataGetter, [ZumitoFramework.name]);
 ServiceContainer.addService(MemberPermissionChecker, []);
 ServiceContainer.addService(CommandParser, []);
 ServiceContainer.addService(SlashCommandRefresher, [ZumitoFramework.name]);
+ServiceContainer.addService(PrefixRetriever, [GuildDataGetter.name])
+ServiceContainer.addService(ErrorHandler, [ZumitoFramework.name]);
 
-ServiceContainer.addService(ErrorHandler, ['ZumitoFramework']);
 
 export {
     ZumitoFramework,
