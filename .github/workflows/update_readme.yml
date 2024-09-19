@@ -1,0 +1,18 @@
+on:
+  workflow_dispatch:
+
+jobs:
+  update-weather:
+    permissions: write-all
+    runs-on: ubuntu-latest
+    steps:
+      steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: rewriteReadme
+        uses: seed-of-apricot/issue-list-readme@v1.1.0
+        with:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          labels: 'roadmap'
+          state: 'open'
