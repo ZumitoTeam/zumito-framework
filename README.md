@@ -155,6 +155,10 @@ for link the framework to your bot, you will need to run these commands
 
 <!-- issueTable -->
 
+| Title                                                                                                  |         Status          | Assignee | Body                                                                                                                              |
+| :----------------------------------------------------------------------------------------------------- | :---------------------: | :------: | :-------------------------------------------------------------------------------------------------------------------------------- |
+| <a href="https://github.com/ZumitoTeam/zumito-framework/issues/50">Implement scheduled task system</a> | :eight_spoked_asterisk: |          | We need to implement a system that allows scheduling and automatically executing tasks at specific times or at regular intervals. |
+
 <!-- issueTable -->
 
 See the [open issues](https://github.com/ZumitoTeam/zumito-framework/issues) for a full list of proposed features (and known issues).
