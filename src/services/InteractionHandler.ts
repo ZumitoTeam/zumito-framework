@@ -205,7 +205,17 @@ export class InteractionHandler {
             );
         }
         const framework = ServiceContainer.getService(ZumitoFramework);
-        if (commandInstance.modalSubmit) {
+        if ((commandInstance as Command).binds?.modalSubmit) {
+            const trans = this.translationManager.getShortHandMethod(
+                'command.' + commandInstance.name,
+                guildSettings?.lang
+            );
+            (commandInstance as Command).binds.modalSubmit({
+                interaction,
+                path,
+                trans,
+            })
+        } else if (commandInstance.modalSubmit) {
             if (!guildSettings && interaction.guildId) {
                 guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
             }
@@ -216,11 +226,10 @@ export class InteractionHandler {
                 framework,
                 guildSettings,
             });
-        } else {
-            this.eventManager.emitEvent('modalSubmit', 'framework', {
-                client: this.client,
-                path, interaction, framework, guildSettings,
-            })
         }
+        this.eventManager.emitEvent('modalSubmit', 'framework', {
+            client: this.client,
+            path, interaction, framework, guildSettings,
+        })
     }
 }

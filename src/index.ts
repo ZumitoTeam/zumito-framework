@@ -37,6 +37,8 @@ import { Route, RouteMethod } from './definitions/Route.js';
 import { InteractionHandler } from './services/InteractionHandler.js';
 import { CommandManager } from './services/CommandManager.js';
 import { ErrorType } from './definitions/ErrorType.js';
+export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
+export { CommandBinds } from './definitions/commands/CommandBinds.js'
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);
