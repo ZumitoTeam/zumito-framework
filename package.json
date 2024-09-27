@@ -33,6 +33,7 @@
     "express": "^4.18.1",
     "leven": "^4.0.0",
     "mongoose": "^6.6.5",
+    "reflect-metadata": "^0.2.2",
     "source-fragment": "^1.1.0",
     "tingodb": "^0.6.1",
     "tseep": "^1.2.2",

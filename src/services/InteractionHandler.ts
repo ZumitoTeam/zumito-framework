@@ -10,6 +10,7 @@ import { EventManager } from "./EventManager";
 import { InteractionHandlerSettings } from "@definitions/settings/InteractionHandlerSettings";
 import { ErrorHandler } from "./ErrorHandler";
 import { ErrorType } from "../definitions/ErrorType";
+import 'reflect-metadata';
 
 export class InteractionHandler {
 

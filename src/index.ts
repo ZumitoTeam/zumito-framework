@@ -39,6 +39,7 @@ import { CommandManager } from './services/CommandManager.js';
 import { ErrorType } from './definitions/ErrorType.js';
 export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
+export { Injectable } from './definitions/decorators/Injectable.decorator.js'
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);

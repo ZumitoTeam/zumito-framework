@@ -13,6 +13,7 @@ import { CommandLoadOptions } from "../definitions/CommandLoadOptions";
 import { ErrorHandler } from "./ErrorHandler";
 import { ServiceContainer } from "./ServiceContainer";
 import { ErrorType } from "../definitions/ErrorType";
+import 'reflect-metadata';
 
 export class CommandManager {
 
