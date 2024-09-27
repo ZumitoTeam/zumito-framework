@@ -1,10 +1,10 @@
-import { ZumitoFramework } from "../ZumitoFramework.js";
-import { DatabaseModel } from "../definitions/DatabaseModel.js";
-import { Module } from "../definitions/Module.js";
+import { ZumitoFramework } from "../../ZumitoFramework.js";
+import { DatabaseModel } from "../../definitions/DatabaseModel.js";
+import { Module } from "../../definitions/Module.js";
 import fs from 'fs';
 import path from 'path';
-import { ErrorHandler } from "./ErrorHandler.js";
-import { ModuleParameters } from "../definitions/parameters/ModuleParameters.js";
+import { ErrorHandler } from "../handlers/ErrorHandler.js";
+import { ModuleParameters } from "../../definitions/parameters/ModuleParameters.js";
 
 export class ModuleManager {
 

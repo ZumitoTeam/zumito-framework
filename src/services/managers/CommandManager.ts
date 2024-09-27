@@ -1,18 +1,18 @@
-import { ZumitoFramework } from "../ZumitoFramework";
+import { ZumitoFramework } from "../../ZumitoFramework";
 import chalk from "chalk";
 import * as chokidar from 'chokidar';
 import path from "path";
 import boxen from "boxen";
 import fs from 'fs';
-import { Command } from "../definitions/commands/Command.js";
+import { Command } from "../../definitions/commands/Command.js";
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
-import { CommandType } from "../definitions/commands/CommandType.js";
-import { CommandArgDefinition } from "../definitions/commands/CommandArgDefinition.js";
-import { CommandChoiceDefinition } from "../definitions/commands/CommandChoiceDefinition.js";
-import { CommandLoadOptions } from "../definitions/CommandLoadOptions";
-import { ErrorHandler } from "./ErrorHandler";
-import { ServiceContainer } from "./ServiceContainer";
-import { ErrorType } from "../definitions/ErrorType";
+import { CommandType } from "../../definitions/commands/CommandType.js";
+import { CommandArgDefinition } from "../../definitions/commands/CommandArgDefinition.js";
+import { CommandChoiceDefinition } from "../../definitions/commands/CommandChoiceDefinition.js";
+import { CommandLoadOptions } from "../../definitions/CommandLoadOptions";
+import { ErrorHandler } from "../handlers/ErrorHandler";
+import { ServiceContainer } from "../ServiceContainer";
+import { ErrorType } from "../../definitions/ErrorType";
 import 'reflect-metadata';
 
 export class CommandManager {

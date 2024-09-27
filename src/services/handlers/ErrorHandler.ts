@@ -1,8 +1,8 @@
 import ErrorStackParser from "error-stack-parser";
-import { ErrorType } from "../definitions/ErrorType";
-import { Command } from "../definitions/commands/Command";
+import { ErrorType } from "../../definitions/ErrorType";
+import { Command } from "../../definitions/commands/Command";
 import chalk from "chalk";
-import { ZumitoFramework } from "../ZumitoFramework";
+import { ZumitoFramework } from "../../ZumitoFramework";
 import sf from 'source-fragment';
 
 type BaseErrorOptions = {

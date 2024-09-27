@@ -11,7 +11,7 @@ import {
     StringSelectMenuInteraction,
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
-import { CommandManager } from '../services/CommandManager.js';
+import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
 

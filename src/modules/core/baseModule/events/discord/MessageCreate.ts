@@ -18,9 +18,9 @@ import leven from 'leven';
 import path from 'path';
 import { ServiceContainer } from '../../../../../services/ServiceContainer.js';
 import { CommandParser } from '../../../../../services/CommandParser.js';
-import { MemberPermissionChecker } from '../../../../../services/MemberPermissionChecker.js';
+import { MemberPermissionChecker } from '../../../../../services/utilities/MemberPermissionChecker.js';
 import { ZumitoFramework } from '../../../../../ZumitoFramework.js';
-import { GuildDataGetter } from '../../../../../services/GuildDataGetter.js';
+import { GuildDataGetter } from '../../../../../services/utilities/GuildDataGetter.js';
 
 export class MessageCreate extends FrameworkEvent {
     

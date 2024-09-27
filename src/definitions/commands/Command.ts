@@ -1,7 +1,6 @@
 import { CommandArgDefinition } from './CommandArgDefinition.js';
 import { CommandParameters, PrefixCommandParameters, SlashCommandParameters } from './CommandParameters.js';
 import { CommandType } from './CommandType.js';
-import { SelectMenuParameters } from '../parameters/SelectMenuParameters.js';
 import { CommandBinds } from './CommandBinds.js';
 
 /**

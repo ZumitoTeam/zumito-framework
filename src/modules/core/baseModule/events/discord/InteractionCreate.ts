@@ -5,7 +5,7 @@ import { CommandType } from '../../../../../definitions/commands/CommandType.js'
 import { EventParameters } from '../../../../../definitions/parameters/EventParameters.js';
 import { FrameworkEvent } from '../../../../../definitions/FrameworkEvent.js';
 import { ServiceContainer } from '../../../../../services/ServiceContainer.js';
-import { InteractionHandler } from '../../../../../services/InteractionHandler.js';
+import { InteractionHandler } from '../../../../../services/handlers/InteractionHandler.js';
 
 export class InteractionCreate extends FrameworkEvent {
     once = false;

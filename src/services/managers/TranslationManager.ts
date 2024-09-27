@@ -1,4 +1,4 @@
-import { Translation } from '../definitions/Translation.js';
+import { Translation } from '../../definitions/Translation.js';
 import fs from 'fs';
 import path from 'path';
 import * as chokidar from 'chokidar';
