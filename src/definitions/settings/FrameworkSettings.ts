@@ -22,4 +22,7 @@ export interface FrameworkSettings {
         path: string,
         options?: ModuleParameters
     }[];
+    webServer?: {
+        port: number;
+    }
 }

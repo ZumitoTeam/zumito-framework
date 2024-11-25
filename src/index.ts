@@ -37,6 +37,7 @@ import { Route, RouteMethod } from './definitions/Route.js';
 import { InteractionHandler } from './services/handlers/InteractionHandler.js';
 import { CommandManager } from './services/managers/CommandManager.js';
 import { ErrorType } from './definitions/ErrorType.js';
+import { InviteUrlGenerator } from '@services/utilities/InviteUrlGenerator.js';
 export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
 export { Injectable } from './definitions/decorators/Injectable.decorator.js'
@@ -48,6 +49,7 @@ ServiceContainer.addService(MemberPermissionChecker, []);
 ServiceContainer.addService(CommandParser, []);
 ServiceContainer.addService(SlashCommandRefresher, [ZumitoFramework.name]);
 ServiceContainer.addService(InteractionHandler, []);
+ServiceContainer.addService(InviteUrlGenerator, []);
 
 ServiceContainer.addService(ErrorHandler, ['ZumitoFramework']);
 
@@ -86,5 +88,6 @@ export {
     Route,
     RouteMethod,
     InteractionHandler,
-    CommandManager
+    CommandManager,
+    InviteUrlGenerator
 };

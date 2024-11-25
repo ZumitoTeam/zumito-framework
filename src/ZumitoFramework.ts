@@ -240,7 +240,7 @@ export class ZumitoFramework {
     startApiServer() {
         this.app = express();
 
-        const port = process.env.PORT || '80';
+        const port = this.settings.webServer?.port || process.env.PORT || '80';
         this.app.set('port', port);
 
         const server = http.createServer(this.app);
