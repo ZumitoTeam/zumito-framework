@@ -220,13 +220,33 @@ export class InteractionHandler {
             if (!guildSettings && interaction.guildId) {
                 guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
             }
-            commandInstance.modalSubmit({
-                client: this.client,
-                path,
-                interaction,
-                framework,
-                guildSettings,
-            });
+            
+            const trans = this.translationManager.getShortHandMethod(
+                'command.' + commandInstance.name,
+                guildSettings?.lang
+            );
+
+            if (commandInstance.binds?.modalSubmit) {
+                commandInstance.binds?.modalSubmit({
+                    path,
+                    interaction,
+                    client: this.client,
+                    framework,
+                    guildSettings,
+                    trans,
+                });
+            } else if ( // Deprecated
+                commandInstance.constructor.prototype.hasOwnProperty('modalSubmit')
+            ) {
+                commandInstance.modalSubmit({
+                    client: this.client,
+                    path,
+                    interaction,
+                    framework,
+                    guildSettings,
+                });
+            }
+    
         }
         this.eventManager.emitEvent('modalSubmit', 'framework', {
             client: this.client,
