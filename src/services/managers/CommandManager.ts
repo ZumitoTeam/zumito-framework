@@ -92,7 +92,7 @@ export class CommandManager {
     async loadCommandsFolder(folderPath: string, options?: CommandLoadOptions): Promise<Map<string, any>> {
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
-            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 const command = await this.loadCommandFile(path.join(folderPath, file));
                 if (command) {
