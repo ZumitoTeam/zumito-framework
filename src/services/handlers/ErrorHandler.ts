@@ -111,7 +111,7 @@ export class ErrorHandler {
             lines.push(`    at ${chalk.gray(filePath)}:${stack.getLineNumber()}:${stack.getColumnNumber()} ${chalk[functionColor](functionName)}`)
             if (functionName == 'CommandManager.loadCommandFile' && !this.framework.settings.debug) break;
             
-            if (!codeFragment && functionName.includes('.execute')) {
+            if (!codeFragment && functionName?.includes('.execute')) {
                 let columnEnd = -1;
                 if (lastStack) {
                     if (lastStack.getFunctionName().contains('.')) {
