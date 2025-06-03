@@ -12,10 +12,10 @@ import { Command } from './definitions/commands/Command.js';
 import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EventEmitter } from "tseep";
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
-import { FrameworkSettings } from './definitions/FrameworkSettings.js';
+import { FrameworkSettings } from './definitions/settings/FrameworkSettings.js';
 import { Module } from './definitions/Module.js';
-import { StatusManager } from './services/StatusManager.js';
-import { TranslationManager } from './services/TranslationManager.js';
+import { StatusManager } from './services/managers/StatusManager.js';
+import { TranslationManager } from './services/managers/TranslationManager.js';
 import { betterLogging } from 'better-logging';
 import zumitoDb from 'zumito-db';
 import cookieParser from 'cookie-parser';
@@ -23,13 +23,13 @@ import cors from 'cors';
 import express from 'express';
 import http from 'http';
 import path from 'path';
-import { EventManager } from './services/EventManager.js';
-import { CommandManager } from './services/CommandManager.js';
-import { ModuleManager } from './services/ModuleManager.js';
+import { EventManager } from './services/managers/EventManager.js';
+import { CommandManager } from './services/managers/CommandManager.js';
+import { ModuleManager } from './services/managers/ModuleManager.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
-import { GuildDataGetter } from './services/GuildDataGetter.js';
-import { RecursiveObjectMerger } from './services/RecursiveObjectMerger.js';
-import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
+import { GuildDataGetter } from './services/utilities/GuildDataGetter.js';
+import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger.js';
+import { MemberPermissionChecker } from './services/utilities/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { Route } from './definitions/Route.js';
@@ -169,7 +169,9 @@ export class ZumitoFramework {
         this.models = [];
         this.eventManager = new EventManager();
 
-        ServiceContainer.addService(TranslationManager, [], true, this.translations)
+        ServiceContainer.addService(TranslationManager, [], true, this.translations);
+        ServiceContainer.addService(CommandManager, [], true, this.commands);
+        ServiceContainer.addService(EventManager, [], true, this.eventManager);
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
@@ -238,7 +240,7 @@ export class ZumitoFramework {
     startApiServer() {
         this.app = express();
 
-        const port = process.env.PORT || '80';
+        const port = this.settings.webServer?.port || process.env.PORT || '80';
         this.app.set('port', port);
 
         const server = http.createServer(this.app);
@@ -297,7 +299,7 @@ export class ZumitoFramework {
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         if (this.settings.bundles && this.settings.bundles.length > 0) {
-            for (let bundle of this.settings.bundles) {
+            for (const bundle of this.settings.bundles) {
                 await this.registerBundle(bundle.path, bundle.options);
             }
         }

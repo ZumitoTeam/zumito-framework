@@ -1,5 +1,5 @@
 import { GuildMember, PermissionsBitField, TextChannel } from "discord.js";
-import { ZumitoFramework } from "../ZumitoFramework";
+import { ZumitoFramework } from "../../ZumitoFramework";
 
 export class MemberPermissionChecker {
 

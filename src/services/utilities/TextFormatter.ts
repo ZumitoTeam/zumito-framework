@@ -1,3 +1,5 @@
+type TimestampFormat = 'T'|'t'|'d'|'D'|'f'|'F'|'R';
+
 export class TextFormatter {
     public static getUser(userId: string) {
         return `<@${userId}>`;
@@ -24,17 +26,17 @@ export class TextFormatter {
     }
 
     // Formats: https://discord.com/developers/docs/reference#message-formatting-formats
-    public static getTimestamp(timestamp: number, format: string) {
+    public static getTimestamp(timestamp: number, format: TimestampFormat) {
         return `<t:${timestamp}:${format}>`;
     }
 
     // Formats: https://discord.com/developers/docs/reference#message-formatting-formats
-    public static getTimestampFromDate(date: Date, format: string) {
+    public static getTimestampFromDate(date: Date, format: TimestampFormat) {
         return `<t:${Math.trunc(date.getTime() / 1000)}:${format}>`;
     }
 
     // Formats: https://discord.com/developers/docs/reference#message-formatting-formats
-    public static getTimestampFromNow(format: string) {
+    public static getTimestampFromNow(format: TimestampFormat) {
         return `<t:${Math.trunc(Math.floor(Date.now() / 1000))}:${format}>`;
     }
 

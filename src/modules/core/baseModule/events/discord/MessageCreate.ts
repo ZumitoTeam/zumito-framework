@@ -14,25 +14,41 @@ import { Command } from '../../../../../definitions/commands/Command.js';
 import ErrorStackParser from 'error-stack-parser';
 import { EventParameters } from '../../../../../definitions/parameters/EventParameters.js';
 import { FrameworkEvent } from '../../../../../definitions/FrameworkEvent.js';
-import { ZumitoFramework } from '../../../../../ZumitoFramework.js';
 import leven from 'leven';
 import path from 'path';
-import { InteractionIdGenerator } from '../../../../../services/InteractionIdGenerator.js';
+import { ServiceContainer } from '../../../../../services/ServiceContainer.js';
+import { CommandParser } from '../../../../../services/CommandParser.js';
+import { MemberPermissionChecker } from '../../../../../services/utilities/MemberPermissionChecker.js';
+import { ZumitoFramework } from '../../../../../ZumitoFramework.js';
+import { GuildDataGetter } from '../../../../../services/utilities/GuildDataGetter.js';
 
 export class MessageCreate extends FrameworkEvent {
+    
     once = false;
     source = 'discord';
+
+    memberPermissionChecker: MemberPermissionChecker;
+    framework: ZumitoFramework;
+    guildDataGetter: GuildDataGetter;
+
+    constructor() {
+        super();
+        this.memberPermissionChecker = ServiceContainer.getService(MemberPermissionChecker);
+        this.framework = ServiceContainer.getService(ZumitoFramework);
+        this.guildDataGetter = ServiceContainer.getService(GuildDataGetter);
+    }
 
     async execute({ message, framework }: EventParameters) {
         const channel = message.channel;
         const prefix = framework.settings.defaultPrefix;
-        const args = ZumitoFramework.splitCommandLine(
+        const args = CommandParser.splitCommandLine(
             message.content.slice(prefix.length)
         );
         const command = args.shift().toLowerCase();
 
         let commandInstance: Command;
         if (message.content.startsWith(prefix)) {
+            debugger;
             if (!framework.commands.getAll().has(command)) {
                 const commandNames = Array.from(framework.commands.getAll().keys());
                 const correctedCommand = this.autocorrect(
@@ -45,8 +61,15 @@ export class MessageCreate extends FrameworkEvent {
                     return; // Command not found
                 }
             } else {
-                commandInstance = framework.commands.get(command);
+                const tmpCmd = framework.commands.get(command);
+                if (tmpCmd && !tmpCmd.parent) {
+                    commandInstance = tmpCmd;
+                }
             }
+
+            commandInstance = Array.from(this.framework.commands.getAll().values()).find((c: Command) => c.name == args.at(0) && c.parent && c.parent == command) || commandInstance;
+
+            if (!commandInstance) return;
 
             if (message.guild == null && commandInstance.dm == false) return;
             if (
@@ -55,7 +78,7 @@ export class MessageCreate extends FrameworkEvent {
             ) {
                 let denied = false;
                 if (
-                    framework.memberHasPermission(
+                    this.memberPermissionChecker.hasPermissionOnChannel(
                         message.member,
                         message.channel as TextChannel,
                         PermissionsBitField.Flags.Administrator
@@ -66,7 +89,7 @@ export class MessageCreate extends FrameworkEvent {
                         commandInstance.userPermissions.forEach(
                             (permission) => {
                                 if (
-                                    !framework.memberHasPermission(
+                                    !this.memberPermissionChecker.hasPermissionOnChannel(
                                         message.member,
                                         message.channel as TextChannel,
                                         permission
@@ -111,51 +134,18 @@ export class MessageCreate extends FrameworkEvent {
             }
 
             try {
-                const guildSettings: any = await framework.getGuildSettings(
-                    message.guildId
-                );
-                const parsedArgs = new Map<string, any>();
-                for (let i = 0; i < args.length; i++) {
-                    const arg = args[i];
-                    const type = commandInstance.args[i]?.type;
-                    if (type) {
-                        if (type == 'member' || type == 'user') {
-                            const member =
-                                await message.guild.members.cache.get(
-                                    arg.replace(/[<@!>]/g, '')
-                                );
-                            if (member) {
-                                if (type == 'user') {
-                                    parsedArgs.set(
-                                        commandInstance.args[i].name,
-                                        member.user
-                                    );
-                                } else {
-                                    parsedArgs.set(
-                                        commandInstance.args[i].name,
-                                        member
-                                    );
-                                }
-                            } else {
-                                return message.reply({
-                                    content: 'Invalid user.',
-                                    allowedMentions: {
-                                        repliedUser: false,
-                                    },
-                                });
-                            }
-                        } else if (type == 'string') {
-                            parsedArgs.set(
-                                commandInstance.args?.[i]?.name || i.toString(),
-                                arg
-                            );
-                        }
-                    }
+                const guildSettings: any = await this.guildDataGetter.getGuildSettings(message.guildId);
+                const parsedArgsResponse = await CommandParser.parseFromSplitedString(args, commandInstance.args, message.guild)
+                if (parsedArgsResponse.errors.length > 0) {
+                    return message.reply({
+                        content: parsedArgsResponse.errors.at(0),
+                        allowedMentions: {
+                            repliedUser: false,
+                        },
+                    }); 
                 }
-                const interactionIdGenerator = new InteractionIdGenerator(
-                    undefined,
-                    commandInstance.name
-                );
+                const parsedArgs = parsedArgsResponse.parsedArgs;
+                           
                 await commandInstance.execute({
                     message,
                     args: parsedArgs,

@@ -22,10 +22,10 @@
   <p align="center">
     Fast and scalable discord bot framework to jumpstart your projects!
     <br />
-    <a href="https://docs.zumito.ga/"><strong>Explore the docs »</strong></a>
+    <a href="https://docs.zumito.dev/"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://zumito.ga">View Demo</a>
+    <a href="#">View Demo (Coming soon)</a>
     ·
     <a href="https://github.com/ZumitoTeam/zumito-framework/issues">Report Bug</a>
     ·
@@ -72,7 +72,7 @@ With this framework, you can easily create a feature-rich bot that solves a prob
 
 The framework is constantly evolving, with new features and updates being added on a regular basis. You can also suggest changes and contribute to the development of the framework by forking the repo and creating a pull request or opening an issue. Thanks to all the contributors who have helped expand this framework!
 
-To get started, simply visit the quickstart guide at [docs.zumito.ga/docs/custom/quickstart](https://docs.zumito.ga/docs/custom/quickstart) and start building your bot today!
+To get started, simply visit the quickstart guide at [docs.zumito.ga/docs/custom/quickstart](https://docs.zumito.dev/guides/start/) and start building your bot today!
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -85,9 +85,7 @@ This section lists the major frameworks and libraries that the framework is buil
 * [Node.js](https://nodejs.org/en/)
 * [TypeScript](https://www.typescriptlang.org/)
 * [Discord.js](https://discord.js.org/#/)
-* [MongoDB](https://www.mongodb.com/)
 * [Express](https://expressjs.com/)
-* [Mongoose](https://mongoosejs.com/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -98,7 +96,7 @@ This section lists the major frameworks and libraries that the framework is buil
 
 This is a guide of how you can set up the project locally to start contributing to the framework. 
 
-:warning: If you're here to create your own bot, refer to the quickstart guide at [docs.zumito.ga/docs/custom/quickstart](https://docs.zumito.ga/docs/custom/quickstart).
+:warning: If you're here to create your own bot, refer to the quickstart guide at [docs.zumito.dev/guides/start](https://docs.zumito.dev/guides/start/).
 
 ### Prerequisites
 
@@ -135,7 +133,7 @@ For build the source code, run the following command:
 npm run build
 ```
 
-Then for test it, you will need to create a bot, you can find a guide [here](https://docs.zumito.ga/docs/custom/quickstart).
+Then for test it, you will need to create a bot, you can find a guide [here](https://docs.zumito.dev/guides/start).
 
 for link the framework to your bot, you will need to run these commands
 1. In the root of framework:
@@ -148,8 +146,6 @@ for link the framework to your bot, you will need to run these commands
     npm link zumito-framework
     ```
 
-_For more info of the framework, please refer to the [Documentation](https://docs.zumito.ga/docs/category/zumito-framework)_
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
@@ -157,9 +153,14 @@ _For more info of the framework, please refer to the [Documentation](https://doc
 <!-- ROADMAP -->
 ## Roadmap
 
-- [X] Add Quick start template
-- [ ] Add more documentation, examples, and guides
-- [ ] Add cli for easy command, events, etc boilerplate generation.
+<!-- issueTable -->
+
+| Title                                                                                                                                 |         Status          | Assignee | Body                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| :------------------------------------------------------------------------------------------------------------------------------------ | :---------------------: | :------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| <a href="https://github.com/ZumitoTeam/zumito-framework/issues/50">Implement scheduled task system</a>                                | :eight_spoked_asterisk: |          | We need to implement a system that allows scheduling and automatically executing tasks at specific times or at regular intervals.                                                                                                                                                                                                                                                                                                                                                      |
+| <a href="https://github.com/ZumitoTeam/zumito-framework/issues/40">[💡] Implement Dashboard for Application Monitoring and Control</a> | :eight_spoked_asterisk: |          | **Problem Description:**<br />Currently, we lack a centralized system to visualize and manage the state of our application. We propose creating a dashboard that provides an intuitive web interface to monitor the bot's status, execute commands remotely, and provide detailed information about activity on the servers. This dashboard should also be scalable to add new functionalities in categories such as status, configuration, and administration options.<br /><br />... |
+
+<!-- issueTable -->
 
 See the [open issues](https://github.com/ZumitoTeam/zumito-framework/issues) for a full list of proposed features (and known issues).
 
@@ -209,6 +210,7 @@ Any questions or suggestions? Come to our [Discord server](https://discord.gg/rF
 We would like to thank the following projects for their inspiration and/or help:
 
 * [Discord.js](https://discord.js.org)
+* [Caminte](https://github.com/biggora/caminte)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

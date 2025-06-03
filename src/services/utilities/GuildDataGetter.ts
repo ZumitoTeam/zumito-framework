@@ -1,5 +1,5 @@
-import { ZumitoFramework } from "../ZumitoFramework";
-import { ServiceContainer } from "./ServiceContainer";
+import { ZumitoFramework } from "../../ZumitoFramework";
+import { ServiceContainer } from "../ServiceContainer";
 
 export class GuildDataGetter {
 

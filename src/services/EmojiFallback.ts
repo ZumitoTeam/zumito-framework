@@ -1,5 +1,5 @@
-import { Client, Emoji } from 'discord.js';
-import { TranslationManager } from './TranslationManager';
+import { Client } from 'discord.js';
+import { TranslationManager } from './managers/TranslationManager';
 
 export class EmojiFallback {
 

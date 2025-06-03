@@ -14,27 +14,34 @@ import { CommandArguments } from './definitions/commands/CommandArguments.js';
 import { CommandChoiceDefinition } from './definitions/commands/CommandChoiceDefinition.js';
 import { CommandParameters } from './definitions/commands/CommandParameters.js';
 import { CommandType } from './definitions/commands/CommandType.js';
-import { DatabaseConfigLoader } from './services/DatabaseConfigLoader.js';
+import { DatabaseConfigLoader } from './services/utilities/DatabaseConfigLoader.js';
 import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EmojiFallback } from './services/EmojiFallback.js';
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/FrameworkSettings.js';
 import { Module } from './definitions/Module.js';
 import { SelectMenuParameters } from './definitions/parameters/SelectMenuParameters.js';
-import { TextFormatter } from './services/TextFormatter.js';
+import { TextFormatter } from './services/utilities/TextFormatter.js';
 import { Translation } from './definitions/Translation.js';
-import { TranslationManager } from './services/TranslationManager.js';
+import { TranslationManager } from './services/managers/TranslationManager.js';
 import { ZumitoFramework } from './ZumitoFramework.js';
 import * as discord from 'discord.js';
 import { EventParameters } from './definitions/parameters/EventParameters.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
-import { GuildDataGetter } from './services/GuildDataGetter.js';
-import { MemberPermissionChecker } from './services/MemberPermissionChecker.js';
+import { GuildDataGetter } from './services/utilities/GuildDataGetter.js';
+import { MemberPermissionChecker } from './services/utilities/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
-import { ErrorHandler } from './services/ErrorHandler.js';
+import { ErrorHandler } from './services/handlers/ErrorHandler.js';
 import { Route, RouteMethod } from './definitions/Route.js';
 import { PrefixRetriever } from './services/PrefixRetriever.js';
+import { InteractionHandler } from './services/handlers/InteractionHandler.js';
+import { CommandManager } from './services/managers/CommandManager.js';
+import { ErrorType } from './definitions/ErrorType.js';
+import { InviteUrlGenerator } from './services/utilities/InviteUrlGenerator.js';
+export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
+export { CommandBinds } from './definitions/commands/CommandBinds.js'
+export { Injectable } from './definitions/decorators/Injectable.decorator.js'
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);
@@ -44,6 +51,8 @@ ServiceContainer.addService(CommandParser, []);
 ServiceContainer.addService(SlashCommandRefresher, [ZumitoFramework.name]);
 ServiceContainer.addService(PrefixRetriever, [GuildDataGetter.name])
 ServiceContainer.addService(ErrorHandler, [ZumitoFramework.name]);
+ServiceContainer.addService(InteractionHandler, []);
+ServiceContainer.addService(InviteUrlGenerator, []);
 
 
 export {
@@ -77,6 +86,10 @@ export {
     SlashCommandRefresher,
     CommandParser,
     ErrorHandler,
+    ErrorType,
     Route,
-    RouteMethod
+    RouteMethod,
+    InteractionHandler,
+    CommandManager,
+    InviteUrlGenerator
 };

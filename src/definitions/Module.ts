@@ -11,7 +11,7 @@ import {
     StringSelectMenuInteraction,
 } from 'discord.js';
 import { DatabaseModel } from './DatabaseModel.js';
-import { CommandManager } from '../services/CommandManager.js';
+import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
 
@@ -79,7 +79,7 @@ export abstract class Module {
         if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
-            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 let event = await import(
                     'file://' + path.join(folderPath, file)
@@ -147,7 +147,7 @@ export abstract class Module {
         if (!fs.existsSync(path.join(this.path, 'models'))) return;
         const files = fs.readdirSync(path.join(this.path, 'models'));
         for (const file of files) {
-            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.d.ts')) continue;
             if (file.endsWith('.ts') || file.endsWith('.js')) {
                 let model = await import(
                     'file://' + `${this.path}/models/${file}`
@@ -184,7 +184,7 @@ export abstract class Module {
         if (!fs.existsSync(folderPath)) throw new Error(`Folder ${folder} doesn't exist`);
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
-            if (file.endsWith('d.ts')) continue;
+            if (file.endsWith('.d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 let route = await import(
                     'file://' + path.join(folderPath, file)

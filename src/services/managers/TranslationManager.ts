@@ -1,4 +1,4 @@
-import { Translation } from '../definitions/Translation.js';
+import { Translation } from '../../definitions/Translation.js';
 import fs from 'fs';
 import path from 'path';
 import * as chokidar from 'chokidar';
@@ -130,5 +130,24 @@ export class TranslationManager {
             })
             // TODO: Handle file removal
             //.on('unlink', function(path) {console.log('File', path, 'has been removed');})
+    }
+
+    getShortHandMethod(keyPrefix: string, language?: string) {
+        return (key: string, params?: any, lang?: string) => {
+            if (key.startsWith('$')) {
+                return this.get(
+                    key.replace('$', ''),
+                    lang || language,
+                    params
+                );
+            } else {
+                if (!keyPrefix.endsWith('.')) keyPrefix += '.';
+                return this.get(
+                    keyPrefix + key,
+                    lang || language,
+                    params
+                );
+            }
+        };
     }
 }

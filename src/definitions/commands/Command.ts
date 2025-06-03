@@ -1,7 +1,7 @@
 import { CommandArgDefinition } from './CommandArgDefinition.js';
-import { CommandParameters } from './CommandParameters.js';
+import { CommandParameters, PrefixCommandParameters, SlashCommandParameters } from './CommandParameters.js';
 import { CommandType } from './CommandType.js';
-import { SelectMenuParameters } from '../parameters/SelectMenuParameters.js';
+import { CommandBinds } from './CommandBinds.js';
 
 /**
  * @name Command
@@ -204,52 +204,37 @@ export abstract class Command {
      */
     type: string = CommandType.prefix;
 
+    parent?: string;
+    binds?: CommandBinds;
+
     /**
      * @name execute
      * @description The function that is executed when the command is called.
      * @param {CommandParameters} parameters The parameters of the command.
-     * @param {Message} parameters.message The message that triggered the command.
-     * @param {CommandInteraction} parameters.interaction The interaction that triggered the command.
-     * @param {string[]} parameters.args The arguments of the command.
-     * @param {Client} parameters.client The client.
-     * @param {Framework} parameters.framework The framework.
-     * @param {trans} (key: string, options?: any) => string Translation shorthand function.
      */
-    abstract execute({
-        message,
-        interaction,
-        args,
-        client,
-        framework,
-    }: CommandParameters): void;
+    abstract execute(parameters: CommandParameters): Promise<void>;
 
-    executePrefixCommand({
+    async executePrefixCommand({
         message,
-        interaction,
         args,
         client,
         framework,
         trans,
-    }: CommandParameters) {
-        this.execute({ message, interaction, args, client, framework, trans });
+    }: PrefixCommandParameters) {
+        await this.execute({ message, args, client, framework, trans });
     }
 
-    executeSlashCommand({
-        message,
+    async executeSlashCommand({
         interaction,
         args,
         client,
         framework,
         trans,
-    }: CommandParameters) {
-        this.execute({ message, interaction, args, client, framework, trans });
+    }: SlashCommandParameters) {
+        await this.execute({ interaction, args, client, framework, trans });
     }
 
-    abstract selectMenu({
-        path,
-        interaction,
-        client,
-        framework,
-        trans,
-    }: SelectMenuParameters): void;
+    isSubCommand() {
+        return this.parent !== undefined;
+    }
 }
