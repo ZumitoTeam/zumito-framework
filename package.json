@@ -56,10 +56,6 @@
     ".": "./dist/index.js",
     "./discord": "./dist/discord/index.js"
   },
-  "_moduleAliases": {
-    "@definitions": "definitions",
-    "@services": "services"
-  },
   "typesVersions": {
     "*": {
       ".": [

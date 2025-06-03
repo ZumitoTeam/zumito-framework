@@ -9,10 +9,6 @@
         "skipLibCheck": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "paths": {
-            "@definitions/*": ["./src/definitions/*"],
-            "@services/*": ["./src/services/*"]
-        }
     },
     "include": ["src/**/*"]
 }
