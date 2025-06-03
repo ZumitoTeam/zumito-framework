@@ -34,8 +34,8 @@ import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { Route } from './definitions/Route.js';
 import { ModuleParameters } from './definitions/parameters/ModuleParameters.js';
-import { ErrorHandler } from '@services/handlers/ErrorHandler.js';
-import { ErrorType } from '@definitions/ErrorType.js';
+import { ErrorHandler } from './services/handlers/ErrorHandler.js';
+import { ErrorType } from './definitions/ErrorType.js';
 
 // import better-logging
 
