@@ -45,6 +45,11 @@ class ServiceContainerManager {
         this.services.get(serviceName).instance = instance;
     }
 
+    hasService(serviceClass: any): boolean {
+        const serviceName = typeof serviceClass == 'string' ? serviceClass : serviceClass.name;
+        return this.services.has(serviceName);
+    }
+
 }
 if (!global.ServiceContainer) global.ServiceContainer = new ServiceContainerManager();
 export const ServiceContainer: ServiceContainerManager = global.ServiceContainer;

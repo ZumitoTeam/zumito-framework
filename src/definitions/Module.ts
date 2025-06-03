@@ -15,6 +15,12 @@ import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
 
+export type ModuleRequeriments = {
+    modules: Array<string>;
+    services: Array<string>;
+    custom: Array<() => Promise<boolean>>;
+};
+
 export abstract class Module {
     protected path: string;
     protected parameters: ModuleParameters;
@@ -22,6 +28,7 @@ export abstract class Module {
     protected commands: CommandManager;
     protected events: Map<string, FrameworkEvent> = new Map();
     protected models: Array<DatabaseModel> = [];
+    static requeriments: ModuleRequeriments;
     
     protected commandManager: CommandManager; 
 

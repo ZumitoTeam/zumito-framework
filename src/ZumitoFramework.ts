@@ -348,8 +348,6 @@ export class ZumitoFramework {
         }
         // Create module instance
         const moduleInstance: Module = await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
-        // Register module in the framework
-        this.modules.registerModule(moduleInstance);
     }
 
     private async registerBundle(bundlePath, bundleOptions: ModuleParameters) {
@@ -357,7 +355,6 @@ export class ZumitoFramework {
         const bundle = await this.modules.loadModuleFile(bundlePath);
         const bundleName = path.basename(bundlePath);
         const moduleInstance: Module = await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
-        this.modules.registerModule(moduleInstance);
     }
 
     /**
