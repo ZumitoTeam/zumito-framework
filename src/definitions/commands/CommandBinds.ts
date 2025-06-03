@@ -1,4 +1,4 @@
-import { ModalSubmitParameters } from '@definitions/parameters/ModalSubmitParameters.js';
+import { ModalSubmitParameters } from '../../definitions/parameters/ModalSubmitParameters.js';
 import { SelectMenuParameters } from '../parameters/SelectMenuParameters.js';
 
 export type CommandBinds = {

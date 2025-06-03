@@ -2,12 +2,12 @@ import { ButtonInteraction, Client, CommandInteraction, Interaction, ModalSubmit
 import { CommandManager } from "../managers/CommandManager";
 import { GuildDataGetter } from "../utilities/GuildDataGetter";
 import { ServiceContainer } from "../ServiceContainer";
-import { Command } from "@definitions/commands/Command";
+import { Command } from "../../definitions/commands/Command";
 import { CommandType } from "../../definitions/commands/CommandType";
 import { ZumitoFramework } from "../../ZumitoFramework";
 import { TranslationManager } from "../managers/TranslationManager";
 import { EventManager } from "../managers/EventManager";
-import { InteractionHandlerSettings } from "@definitions/settings/InteractionHandlerSettings";
+import { InteractionHandlerSettings } from "../../definitions/settings/InteractionHandlerSettings";
 import { ErrorHandler } from "./ErrorHandler";
 import { ErrorType } from "../../definitions/ErrorType";
 import 'reflect-metadata';
