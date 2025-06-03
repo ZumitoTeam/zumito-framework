@@ -15,6 +15,18 @@ type CommandErrorOptions = BaseErrorOptions & {
     command: Command,
 }
 
+type ApiErrorOptions = BaseErrorOptions & {
+    type: ErrorType.Api,
+    endpoint: string,
+    method: string,
+}
+
+type OtherErrorOptions = BaseErrorOptions & {
+    type: ErrorType.Other,
+}
+
+type ErrorOptions = CommandErrorOptions | ApiErrorOptions | OtherErrorOptions;
+
 export class ErrorHandler {
 
     framework: ZumitoFramework;
@@ -23,7 +35,7 @@ export class ErrorHandler {
         this.framework = framework;
     }
 
-    handleError(error: any, options: BaseErrorOptions | CommandErrorOptions) {
+    handleError(error: any, options: ErrorOptions) {
         if (options?.type == ErrorType.CommandInstance || options?.type == ErrorType.CommandLoad || options?.type == ErrorType.CommandRun) {
             this.handleCommandError(error, options as CommandErrorOptions);
         } else if (error.constructor.name == 'CombinedError') {
@@ -34,6 +46,12 @@ export class ErrorHandler {
         } else if (error.constructor.name == "ValidationError") {
             console.error(`Validation error: ${error.validator} received invalid input: ${error.given}`);
             console.line('');            
+        } else if (options?.type == ErrorType.Api) {
+            console.group(`[❌] Error in API endpoint ${options.endpoint} (${options.method})`);
+            console.line(chalk.red('Error:'));
+            console.line(error.toString());
+            console.line('');
+            console.groupEnd();
         } else {
             console.error(error.toString());
             console.line('');

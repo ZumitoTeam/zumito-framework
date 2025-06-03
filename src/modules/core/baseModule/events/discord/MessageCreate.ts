@@ -21,6 +21,8 @@ import { CommandParser } from '../../../../../services/CommandParser.js';
 import { MemberPermissionChecker } from '../../../../../services/utilities/MemberPermissionChecker.js';
 import { ZumitoFramework } from '../../../../../ZumitoFramework.js';
 import { GuildDataGetter } from '../../../../../services/utilities/GuildDataGetter.js';
+import { ErrorHandler } from '../../../../../services/handlers/ErrorHandler.js';
+import { ErrorType } from '../../../../../definitions/ErrorType.js';
 
 export class MessageCreate extends FrameworkEvent {
     
@@ -167,6 +169,15 @@ export class MessageCreate extends FrameworkEvent {
                             );
                         }
                     },
+                }).catch((error) => {
+                    const errorHandler = ServiceContainer.getService(ErrorHandler);
+                    errorHandler.handleError(error, {
+                        command: commandInstance,
+                        type: ErrorType.CommandRun,
+                    })
+                    message.reply({
+                        content: "An error ocurred while running this command.",
+                    })
                 });
                 if (!message.channel.isDMBased && !message.deletable) {
                     return; // TODO: test if this works
@@ -180,23 +191,14 @@ export class MessageCreate extends FrameworkEvent {
                     }
                 }
             } catch (error) {
-                const content: any = await this.getErrorEmbed(
-                    {
-                        name: error.name,
-                        message: error.message,
-                        command: commandInstance,
-                        args: args,
-                        stack: error.stack,
-                    },
-                    true
-                );
-                try {
-                    message.reply(content);
-                } catch (e) {
-                    if (channel.type !== ChannelType.GuildStageVoice) {
-                        channel.send(content);
-                    }
-                }
+                const errorHandler = ServiceContainer.getService(ErrorHandler);
+                errorHandler.handleError(error, {
+                    command: commandInstance,
+                    type: ErrorType.CommandRun,
+                })
+                message.reply({
+                    content: "An error ocurred while running this command.",
+                })
             }
         }
     }
@@ -219,144 +221,5 @@ export class MessageCreate extends FrameworkEvent {
         }
 
         return bestWord;
-    }
-
-    getErrorEmbed(error, parse) {
-        let parsedError;
-        if (parse) {
-            parsedError = this.parseError(error);
-        } else {
-            parsedError = error;
-        }
-        const embed = new EmbedBuilder()
-            .setTitle('Error')
-            .setDescription(
-                'An error has occured while executing this command.'
-            )
-            .setTimestamp()
-            .addFields([
-                {
-                    name: 'Command:',
-                    value: error.command.name || 'Not defined',
-                },
-            ])
-            .addFields([
-                {
-                    name: 'Arguments:',
-                    value: error.args.toString() || 'None',
-                },
-            ])
-            .addFields([
-                {
-                    name: 'Error name:',
-                    value: error.name || 'Not defined',
-                },
-            ])
-            .addFields([
-                {
-                    name: 'Error message:',
-                    value: error.message || 'Not defined',
-                },
-            ]);
-        if (error.possibleSolutions !== undefined) {
-            error.possibleSolutions.forEach((solution) => {
-                embed.addFields([
-                    {
-                        name: 'Posible solution:',
-                        value: solution,
-                    },
-                ]);
-            });
-        }
-
-        const stackFrames = ErrorStackParser.parse(error).filter(
-            (e) =>
-                !e.fileName.includes('node_modules') &&
-                !e.fileName.includes('node:internal')
-        );
-        let stack = '';
-        const path1 = path.resolve('./');
-        const path2 = path1.replaceAll('\\', '/');
-        stackFrames.forEach((frame) => {
-            stack += `[${frame.fileName
-                .replace(path1, '')
-                .replace(path2, '')
-                .replace('file://', '')}:${
-                frame.lineNumber
-            }](https://zumito.ga/redirect?url=vscode://file/${frame.fileName.replace(
-                'file://',
-                ''
-            )}:${frame.lineNumber}) ${frame.functionName}()\n`;
-        });
-
-        if (error.stack !== undefined) {
-            embed.addFields([
-                {
-                    name: 'Call stack:',
-                    value: stack || error.stack || error.stack.toString(),
-                },
-            ]);
-        }
-        if (error.details !== undefined) {
-            error.details.forEach((detail) => {
-                embed.addFields([
-                    {
-                        name: 'Detail:',
-                        value: detail,
-                    },
-                ]);
-            });
-        }
-
-        const body = `\n\n\n---\nComand:\`\`\`${
-            error.command.name || 'not defined'
-        }\`\`\`\nArguments:\`\`\`${
-            error.args.toString() || 'none'
-        }\`\`\`\nError:\`\`\`${
-            error.name || 'not defined'
-        }\`\`\`\nError message:\`\`\`${error.message || 'not defined'}\`\`\`\n`;
-        const requestUrl = `https://github.com/ZumitoTeam/Zumito/issues/new?body=${encodeURIComponent(
-            body
-        )}`;
-
-        const row = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-                .setStyle(ButtonStyle.Link)
-                .setLabel('Report error')
-                .setEmoji('975645505302437978')
-                .setURL(requestUrl)
-        );
-
-        return {
-            embeds: [embed],
-            components: [row],
-            allowedMentions: {
-                repliedUser: false,
-            },
-        };
-    }
-
-    parseError(error) {
-        error.possibleSolutions = [];
-        if (
-            /(?:^|(?<= ))(EmbedBuilder|Discord|ActionRowBuilder|ButtonBuilder|MessageSelectMenu)(?:(?= )|$) is not defined/gm.test(
-                error.message
-            )
-        ) {
-            error.possibleSolutions.push(
-                'const { ' +
-                    error.message.split(' ')[0] +
-                    " } = require('discord.js');"
-            );
-        } else if (
-            error.message.includes(
-                'A custom id and url cannot both be specified'
-            )
-        ) {
-            error.possibleSolutions.push(
-                'Remove .setCustomId(...) or .setURL(...)'
-            );
-        }
-        return error;
     }
 }

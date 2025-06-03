@@ -34,6 +34,8 @@ import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { Route } from './definitions/Route.js';
 import { ModuleParameters } from './definitions/parameters/ModuleParameters.js';
+import { ErrorHandler } from '@services/handlers/ErrorHandler.js';
+import { ErrorType } from '@definitions/ErrorType.js';
 
 // import better-logging
 
@@ -255,6 +257,23 @@ export class ZumitoFramework {
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(cookieParser());
+        
+        //Error handler
+        this.app.use(function (err, req, res, next) {
+            const errorHandler = ServiceContainer.getService(ErrorHandler);
+            errorHandler.handleError(err, {
+                type: ErrorType.Api,
+                endpoint: req.originalUrl,
+                method: req.method,
+            });
+
+            if (!res.headersSent) {
+                return res.status(500).json({
+                    error: 'Internal Server Error',
+                    message: 'An unexpected error occurred. Please try again later.',
+                });
+            }
+        });
         //this.app.use(express.static(path.join(__dirname, "public")));
 
         //To allow cross-origin requests
@@ -347,14 +366,14 @@ export class ZumitoFramework {
             module = await this.modules.loadModuleFile(path.join(modulesFolder, moduleName));
         }
         // Create module instance
-        const moduleInstance: Module = await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
+        await this.modules.instanceModule(module, path.join(modulesFolder, moduleName), moduleName);
     }
 
     private async registerBundle(bundlePath, bundleOptions: ModuleParameters) {
         console.log(bundlePath);
         const bundle = await this.modules.loadModuleFile(bundlePath);
         const bundleName = path.basename(bundlePath);
-        const moduleInstance: Module = await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
+        await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
     }
 
     /**
