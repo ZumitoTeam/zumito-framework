@@ -34,6 +34,7 @@ import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
 import { ErrorHandler } from './services/handlers/ErrorHandler.js';
 import { Route, RouteMethod } from './definitions/Route.js';
+import { PrefixRetriever } from './services/PrefixRetriever.js';
 import { InteractionHandler } from './services/handlers/InteractionHandler.js';
 import { CommandManager } from './services/managers/CommandManager.js';
 import { ErrorType } from './definitions/ErrorType.js';
@@ -48,10 +49,11 @@ ServiceContainer.addService(GuildDataGetter, [ZumitoFramework.name]);
 ServiceContainer.addService(MemberPermissionChecker, []);
 ServiceContainer.addService(CommandParser, []);
 ServiceContainer.addService(SlashCommandRefresher, [ZumitoFramework.name]);
+ServiceContainer.addService(PrefixRetriever, [GuildDataGetter.name])
+ServiceContainer.addService(ErrorHandler, [ZumitoFramework.name]);
 ServiceContainer.addService(InteractionHandler, []);
 ServiceContainer.addService(InviteUrlGenerator, []);
 
-ServiceContainer.addService(ErrorHandler, ['ZumitoFramework']);
 
 export {
     ZumitoFramework,
