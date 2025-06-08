@@ -103,6 +103,7 @@ export class ErrorHandler {
         let codeFragment: any;
         let lastStack;
         for (const stack of stackParsedError) {
+            if (!stack || !stack.getFileName() || !stack.getFunctionName || !stack.getFileName() || !stack.getFunctionName()) continue;
             const filePath = stack.getFileName().replace(process.cwd(), '.').replace('file://', '');
             const functionName = stack.getFunctionName();
             if (functionName == 'CommandManager.loadCommandFile') {
