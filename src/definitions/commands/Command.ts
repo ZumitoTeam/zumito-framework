@@ -181,7 +181,7 @@ export abstract class Command {
      * @name type
      * @description The type of the command. This is used to determine how the command should be executed.
      * @type {CommandType}
-     * @default CommandType.prefix
+     * @default CommandType.any
      * @example
      * ```ts
      * export class PingCommand extends Command {
@@ -202,7 +202,7 @@ export abstract class Command {
      * ```
      * @see {@link CommandType}
      */
-    type: string = CommandType.prefix;
+    type: string = CommandType.any;
 
     parent?: string;
     binds?: CommandBinds;
