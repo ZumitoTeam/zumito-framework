@@ -115,10 +115,11 @@ export class ErrorHandler {
             if (!codeFragment && functionName?.includes('.execute')) {
                 let columnEnd = -1;
                 if (lastStack) {
-                    if (lastStack.getFunctionName().contains('.')) {
-                        columnEnd = lastStack.getFunctionName().split('.').at(-1).length;
+                    const lastFunctionName = lastStack.getFunctionName();
+                    if (lastFunctionName.includes('.')) {
+                        columnEnd = lastFunctionName.split('.').at(-1).length;
                     } else {
-                        columnEnd = lastStack.getFunctionName().length;
+                        columnEnd = lastFunctionName.length;
                     }
                 }
                 codeFragment = {
