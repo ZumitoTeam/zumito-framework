@@ -96,8 +96,15 @@ export class ErrorHandler {
         }
     }
 
-    printErrorStack(error: Error) {
-        const stackParsedError = ErrorStackParser.parse(error);
+    printErrorStack(error: any) {
+        if (!error || !(error.stack || error.stacktrace)) return;
+
+        let stackParsedError;
+        try {
+            stackParsedError = ErrorStackParser.parse(error);
+        } catch {
+            return;
+        }
         let functionColor = 'blue';
         const lines: any[] = [];
         let codeFragment: any;
