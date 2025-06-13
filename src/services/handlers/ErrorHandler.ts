@@ -49,11 +49,11 @@ export class ErrorHandler {
         } else if (options?.type == ErrorType.Api) {
             console.group(`[❌] Error in API endpoint ${options.endpoint} (${options.method})`);
             console.line(chalk.red('Error:'));
-            console.line(error.toString());
+            console.line(error?.toString?.() || 'Unknown error');
             console.line('');
             console.groupEnd();
         } else {
-            console.error(error.toString());
+            console.error(error?.toString?.() || 'Unknown error');
             console.line('');
         }
 
@@ -79,7 +79,7 @@ export class ErrorHandler {
             this.handleShapeShiftErrors(error);
         } else {
             console.line(chalk.red('Error:'));
-            console.line(error.toString());
+            console.line(error?.toString?.() || 'Unknown error');
             console.line('');
             console.groupEnd();
         }
