@@ -33,14 +33,23 @@ export class SlashCommandRefresher {
                     !command.parent
             )
             .map(command => this.mapCommand(command));
+
+        const uniqueCommands: any[] = [];
+        const names = new Set();
+        for (const cmd of commands) {
+            if (!names.has(cmd.name)) {
+                uniqueCommands.push(cmd);
+                names.add(cmd.name);
+            }
+        }
         const data: any = await rest.put(
             Routes.applicationCommands(
                 this.framework.settings.discordClientOptions.clientId
             ),
-            { body: commands }
+            { body: uniqueCommands }
         );
         console.debug(
-            `Successfully reloaded ${data.length} of ${commands.length} application (/) commands.`
+            `Successfully reloaded ${data.length} of ${uniqueCommands.length} application (/) commands.`
         );
     }
 

@@ -145,9 +145,12 @@ export class CommandManager {
         const commands = Array.from(this.commands.values())
             .filter(
                 (command: Command) =>
-                    command.type == CommandType.slash ||
-                    command.type == CommandType.separated ||
-                    command.type == CommandType.any
+                    (
+                        command.type == CommandType.slash ||
+                        command.type == CommandType.separated ||
+                        command.type == CommandType.any
+                    ) &&
+                    !command.parent
             )
             .map((command: Command) => {
                 const slashCommand = new SlashCommandBuilder()
