@@ -38,14 +38,14 @@ export class ErrorHandler {
     handleError(error: any, options: ErrorOptions) {
         if (options?.type == ErrorType.CommandInstance || options?.type == ErrorType.CommandLoad || options?.type == ErrorType.CommandRun) {
             this.handleCommandError(error, options as CommandErrorOptions);
-        } else if (error.constructor.name == 'CombinedError') {
-                this.handleShapeShiftErrors(error);
-        } else if (error.constructor?.name == "ExpectedValidationError") {
+        } else if (error?.constructor?.name == 'CombinedError') {
+            this.handleShapeShiftErrors(error);
+        } else if (error?.constructor?.name == "ExpectedValidationError") {
             console.error(`Validation error: Expected ${error.expected}, but received ${error.given}.`);
             console.line('');
-        } else if (error.constructor.name == "ValidationError") {
+        } else if (error?.constructor?.name == "ValidationError") {
             console.error(`Validation error: ${error.validator} received invalid input: ${error.given}`);
-            console.line('');            
+            console.line('');
         } else if (options?.type == ErrorType.Api) {
             console.group(`[❌] Error in API endpoint ${options.endpoint} (${options.method})`);
             console.line(chalk.red('Error:'));
@@ -74,7 +74,7 @@ export class ErrorHandler {
                 console.group(`[❌] Error running command ${options.command.name}`)
                 break;
         }
-        if (error.constructor.name == 'CombinedError') {
+        if (error?.constructor?.name == 'CombinedError') {
             console.groupEnd();
             this.handleShapeShiftErrors(error);
         } else {
@@ -86,7 +86,7 @@ export class ErrorHandler {
     }
 
     handleShapeShiftErrors(error: any) {
-        if (error.constructor.name == 'CombinedError') {
+        if (error?.constructor?.name == 'CombinedError') {
             error.errors.forEach(err => {
                 this.handleError(err, {
                     type: ErrorType.Other
