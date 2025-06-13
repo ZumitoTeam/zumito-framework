@@ -74,7 +74,7 @@ export class SlashCommandRefresher {
                         break;
                     default:
                         throw new Error(
-                            'Invalid argument type ' + arg.type
+                            `Invalid argument type ${arg.type} in command ${command.name} for argument ${arg.name}`
                         );
                 }
                 slashCommand[method]((option) => {
