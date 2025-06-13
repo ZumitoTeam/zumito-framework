@@ -165,6 +165,9 @@ export class CommandManager {
                             case 'string':
                                 method = 'addStringOption';
                                 break;
+                            case 'number':
+                                method = 'addNumberOption';
+                                break;
                             case 'user':
                             case 'member':
                                 method = 'addUserOption';
