@@ -57,6 +57,9 @@ export class ErrorHandler {
             console.line('');
         }
 
+        // Emit framework error event so external modules can listen and report
+        this.framework.eventEmitter.emit('error', error, options);
+
         this.printErrorStack(error);
 
         if (options.exit) process.exit(1);
