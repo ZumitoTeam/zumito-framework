@@ -25,10 +25,12 @@ export class SlashCommandRefresher {
         const commands = Array.from(this.framework.commands.getAll().values())
             .filter(
                 (command: Command) =>
-                    (command.type == CommandType.slash ||
-                    command.type == CommandType.separated ||
-                    command.type == CommandType.any)
-                    && !command.parent
+                    (
+                        command.type == CommandType.slash ||
+                        command.type == CommandType.separated ||
+                        command.type == CommandType.any
+                    ) &&
+                    !command.parent
             )
             .map(command => this.mapCommand(command));
         const data: any = await rest.put(
@@ -111,11 +113,13 @@ export class SlashCommandRefresher {
         Array.from(this.framework.commands.getAll().values())
             .filter(
                 (subcommand: Command) =>
-                    (subcommand.type == CommandType.slash ||
+                    (
+                        subcommand.type == CommandType.slash ||
                         subcommand.type == CommandType.separated ||
-                        subcommand.type == CommandType.any)
-                    && subcommand.parent
-                    && subcommand.parent == command.name
+                        subcommand.type == CommandType.any
+                    ) &&
+                    subcommand.parent &&
+                    subcommand.parent == command.name
             )
             .forEach(subcommand => {
                 if (!commandBuilder) {
