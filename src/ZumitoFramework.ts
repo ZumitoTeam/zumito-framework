@@ -257,9 +257,39 @@ export class ZumitoFramework {
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: false }));
         this.app.use(cookieParser());
-        
+        //this.app.use(express.static(path.join(__dirname, "public")));
+
+        //To allow cross-origin requests
+        this.app.use(cors());
+
+        //Route Prefixes
+        //this.app.use("/", indexRouter);
+        //this.app.use("/api/", apiRouter);
+
+        this.routes.forEach(route => {
+            this.app[route.method](route.path, async (req, res, next) => {
+                try {
+                    await Promise.resolve(route.execute(req, res));
+                } catch (err) {
+                    next(err);
+                }
+            });
+        })
+
+        // throw 404 if URL not found
+        this.app.all('*', (req, res) => {
+            return ApiResponse.notFoundResponse(res, 'Page not found');
+        });
+
+        this.app.use((err, req, res, next) => {
+            if (err.name === 'UnauthorizedError') {
+                return ApiResponse.unauthorizedResponse(res, 'Invalid token');
+            }
+            next(err);
+        });
+
         //Error handler
-        this.app.use(function (err, req, res, next) {
+        this.app.use((err, req, res, next) => {
             const errorHandler = ServiceContainer.getService(ErrorHandler);
             errorHandler.handleError(err, {
                 type: ErrorType.Api,
@@ -272,31 +302,6 @@ export class ZumitoFramework {
                     error: 'Internal Server Error',
                     message: 'An unexpected error occurred. Please try again later.',
                 });
-            }
-        });
-        //this.app.use(express.static(path.join(__dirname, "public")));
-
-        //To allow cross-origin requests
-        this.app.use(cors());
-
-        //Route Prefixes
-        //this.app.use("/", indexRouter);
-        //this.app.use("/api/", apiRouter);
-
-        this.routes.forEach(route => {
-            this.app[route.method](route.path, function (req, res) {
-                return route.execute(req, res);
-            });
-        })
-
-        // throw 404 if URL not found
-        this.app.all('*', function (req, res) {
-            return ApiResponse.notFoundResponse(res, 'Page not found');
-        });
-
-        this.app.use(function (err, req, res) {
-            if (err.name === 'UnauthorizedError') {
-                return ApiResponse.unauthorizedResponse(res, 'Invalid token');
             }
         });
     }
