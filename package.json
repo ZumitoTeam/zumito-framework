@@ -37,7 +37,7 @@
     "source-fragment": "^1.1.0",
     "tingodb": "^0.6.1",
     "tseep": "^1.2.2",
-    "zumito-db": "1.0.2"
+    "zumito-db": "1.0.1"
   },
   "devDependencies": {
     "@types/node": "^18.19.44",
