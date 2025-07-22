@@ -3,7 +3,7 @@ import { REST } from '@discordjs/rest';
 import { Routes } from 'discord-api-types/v9';
 import { Command } from "../definitions/commands/Command";
 import { CommandType } from "../definitions/commands/CommandType";
-import { SlashCommandBuilder, SlashCommandSubcommandBuilder } from "discord.js";
+import { InteractionContextType, SlashCommandBuilder, SlashCommandSubcommandBuilder } from "discord.js";
 import { CommandArgDefinition } from "../definitions/commands/CommandArgDefinition";
 import { CommandChoiceDefinition } from "../definitions/commands/CommandChoiceDefinition";
 
@@ -63,6 +63,13 @@ export class SlashCommandRefresher {
                     'en'
                 )
             );
+            if (slashCommand instanceof SlashCommandBuilder) {
+                slashCommand.setContexts([
+                    InteractionContextType.BotDM,
+                    InteractionContextType.Guild,
+                    InteractionContextType.PrivateChannel,
+                ]);
+            }
         if (command.args) {
             command.args.forEach((arg: CommandArgDefinition) => {
                 let method;
