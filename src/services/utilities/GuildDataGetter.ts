@@ -36,7 +36,6 @@ export class GuildDataGetter {
     public async getGuildSettings(guildId: string) {
         const collection = this.framework.database.collection('guilds');
         let guild = await collection.findOne({ guild_id: guildId });
-        console.log(guild);
         if (!guild) {
             guild = {
                 _id: new ObjectId(),
