@@ -2,7 +2,7 @@ import { ModuleParameters } from "../parameters/ModuleParameters";
 import { StatusManagerOptions } from "../StatusManagerOptions";
 
 export interface FrameworkSettings {
-    database: any;
+    mongoQueryString: string;
     logLevel?: number;
     debug?: boolean;
     discordClientOptions: {

@@ -1,4 +1,4 @@
-import { CommandInteraction, Interaction } from 'discord.js';
+import { ChatInputCommandInteraction, Interaction } from 'discord.js';
 
 export class CommandArguments {
     args: any = {};
@@ -15,7 +15,10 @@ export class CommandArguments {
         this.args[key] = value;
     }
 
-    public static parseFromInteraction(interaction: CommandInteraction) {
-        return new CommandArguments(interaction.options);
+    public static parseFromInteraction(interaction: Interaction) {
+        if ('options' in interaction) {
+            return new CommandArguments((interaction as ChatInputCommandInteraction).options);
+        }
+        return new CommandArguments();
     }
 }

@@ -9,7 +9,6 @@ import {
 
 import { ApiResponse } from './definitions/api/ApiResponse.js';
 import { Command } from './definitions/commands/Command.js';
-import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EventEmitter } from "tseep";
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/settings/FrameworkSettings.js';
@@ -17,7 +16,6 @@ import { Module } from './definitions/Module.js';
 import { StatusManager } from './services/managers/StatusManager.js';
 import { TranslationManager } from './services/managers/TranslationManager.js';
 import { betterLogging } from 'better-logging';
-import zumitoDb from 'zumito-db';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express from 'express';
@@ -28,7 +26,6 @@ import { CommandManager } from './services/managers/CommandManager.js';
 import { ModuleManager } from './services/managers/ModuleManager.js';
 import { ServiceContainer } from './services/ServiceContainer.js';
 import { GuildDataGetter } from './services/utilities/GuildDataGetter.js';
-import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger.js';
 import { MemberPermissionChecker } from './services/utilities/MemberPermissionChecker.js';
 import { CommandParser } from './services/CommandParser.js';
 import { SlashCommandRefresher } from './services/SlashCommandRefresher.js';
@@ -36,6 +33,9 @@ import { Route } from './definitions/Route.js';
 import { ModuleParameters } from './definitions/parameters/ModuleParameters.js';
 import { ErrorHandler } from './services/handlers/ErrorHandler.js';
 import { ErrorType } from './definitions/ErrorType.js';
+
+import { Db } from 'mongodb';
+import { MongoService } from './services/MongoService.js';
 
 // import better-logging
 
@@ -105,20 +105,19 @@ export class ZumitoFramework {
     translations: TranslationManager;
     routes: Route[] = [];
     
-    /**
-     * The database models loaded in the framework.
-     * @type {Array<DatabaseModel>}
-     * @private
-     */
-    models: Array<DatabaseModel>;
     
     /**
-     * The zumito-db database schema instance.
-     * @type {zumitoDb.Schema}
+     * The MongoDB service instance.
+     * @type {MongoService}
      * @private
-     * @see {@link https://www.npmjs.com/package/zumito-db}
      */
-    database: any;
+    mongoService: MongoService;
+    /**
+     * The MongoDB database instance (shortcut).
+     * @type {Db}
+     * @private
+     */
+    database: Db;
     
     /**
      * The ExpressJS app instance.
@@ -168,7 +167,6 @@ export class ZumitoFramework {
         this.commands = new CommandManager(this);
         this.events = new Map();
         this.translations = new TranslationManager();
-        this.models = [];
         this.eventManager = new EventManager();
 
         ServiceContainer.addService(TranslationManager, [], true, this.translations);
@@ -212,27 +210,23 @@ export class ZumitoFramework {
     }
 
     private async initializeDatabase() {
-        const folders = ['db', 'db/tingodb'];
-        for (const folder of folders) {
-            if (!fs.existsSync(folder)) {
-                fs.mkdirSync(folder);
-            }
+        const mongoUri = this.settings?.mongoQueryString || process.env.MONGO_URI;
+        if (!mongoUri) {
+            console.error('[🗄️🔴] MongoDB connection string not provided.');
+            process.exit(1);
         }
-        this.database = new zumitoDb.Schema(
-            this.settings?.database?.type || 'tingodb',
-            this.settings?.database || {}
-        );
-        await new Promise((resolve, reject) => {
-            this.database.on('connected', resolve);
-            this.database.on('error', reject);
-        })
-            .then(() => {
-                console.log('[🗄️🟢] Database connection successful!');
-            })
-            .catch((err) => {
-                console.error('[🗄️🔴] Database connection error:', err.message);
-                process.exit(1);
-            });
+        // Extract dbName from URI or fallback
+        const match = mongoUri.match(/\/([^/?]+)(\?|$)/);
+        const dbName = match ? match[1] : 'zumito';
+        this.mongoService = new MongoService(mongoUri, dbName);
+        try {
+            await this.mongoService.connect();
+            this.database = this.mongoService.db;
+            console.log('[🗄️🟢] MongoDB connection successful!');
+        } catch (err) {
+            console.error('[🗄️🔴] MongoDB connection error:', err.message);
+            process.exit(1);
+        }
     }
 
     /**
@@ -343,27 +337,6 @@ export class ZumitoFramework {
             await this.registerModule(process.cwd(), 'src')
         }
 
-        // Define models
-        const schemas: any = {};
-        this.models.forEach((model: DatabaseModel) => {
-            if (!schemas[model.name]) {
-                schemas[model.name] = model.getModel(this.database);
-            } else {
-                schemas[model.name] = RecursiveObjectMerger.merge(
-                    schemas[model.name],
-                    model.getModel(this.database)
-                );
-            }
-        });
-        Object.keys(schemas).forEach((schemaName: string) => {
-            this.database.define(schemaName, schemas[schemaName]);
-        });
-        this.models.forEach((model: DatabaseModel) => {
-            model.define(
-                this.database.models[model.name],
-                this.database.models
-            );
-        });
     }
 
     private async registerModule(modulesFolder, moduleName, module?: any) {

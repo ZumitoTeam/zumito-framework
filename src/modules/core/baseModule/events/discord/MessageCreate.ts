@@ -40,9 +40,9 @@ export class MessageCreate extends FrameworkEvent {
         this.guildDataGetter = ServiceContainer.getService(GuildDataGetter);
     }
 
-    async execute({ message, framework }: EventParameters) {
+    async execute({ message }: EventParameters) {
         const channel = message.channel;
-        const prefix = framework.settings.defaultPrefix;
+        const prefix = this.framework.settings.defaultPrefix;
         const args = CommandParser.splitCommandLine(
             message.content.slice(prefix.length)
         );
@@ -50,20 +50,19 @@ export class MessageCreate extends FrameworkEvent {
 
         let commandInstance: Command;
         if (message.content.startsWith(prefix)) {
-            debugger;
-            if (!framework.commands.getAll().has(command)) {
-                const commandNames = Array.from(framework.commands.getAll().keys());
+            if (!this.framework.commands.getAll().has(command)) {
+                const commandNames = Array.from(this.framework.commands.getAll().keys());
                 const correctedCommand = this.autocorrect(
                     command,
                     commandNames
                 );
-                if (framework.commands.getAll().has(correctedCommand)) {
-                    commandInstance = framework.commands.get(correctedCommand);
+                if (this.framework.commands.getAll().has(correctedCommand)) {
+                    commandInstance = this.framework.commands.get(correctedCommand);
                 } else {
                     return; // Command not found
                 }
             } else {
-                const tmpCmd = framework.commands.get(command);
+                const tmpCmd = this.framework.commands.get(command);
                 if (tmpCmd && !tmpCmd.parent) {
                     commandInstance = tmpCmd;
                 }
@@ -151,18 +150,18 @@ export class MessageCreate extends FrameworkEvent {
                 await commandInstance.execute({
                     message,
                     args: parsedArgs,
-                    client: framework.client,
-                    framework: framework,
+                    client: this.framework.client,
+                    framework: this.framework,
                     guildSettings: guildSettings,
                     trans: (key: string, params?: any) => {
                         if (key.startsWith('$')) {
-                            return framework.translations.get(
+                            return this.framework.translations.get(
                                 key.replace('$', ''),
                                 guildSettings.lang,
                                 params
                             );
                         } else {
-                            return framework.translations.get(
+                            return this.framework.translations.get(
                                 'command.' + commandInstance.name + '.' + key,
                                 guildSettings.lang,
                                 params

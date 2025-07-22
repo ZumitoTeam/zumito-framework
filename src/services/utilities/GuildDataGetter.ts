@@ -1,5 +1,6 @@
 import { ZumitoFramework } from "../../ZumitoFramework";
 import { ServiceContainer } from "../ServiceContainer";
+import { ObjectId } from "mongodb";
 
 export class GuildDataGetter {
 
@@ -33,23 +34,18 @@ export class GuildDataGetter {
      * getGuildSettings(interaction.guildId);
      */
     public async getGuildSettings(guildId: string) {
-        const Guild = this.framework.database.models.Guild;
-        return await new Promise((resolve, reject) => {
-            Guild.findOne({ where: { guild_id: guildId } }, (err, guild) => {
-                if (err) reject(err);
-                if (guild == null) {
-                    guild = new Guild({
-                        guild_id: guildId,
-                    });
-                    guild.save((err) => {
-                        if (err) reject(err);
-                        resolve(guild);
-                    });
-                } else {
-                    resolve(guild);
-                }
-            });
-        });
+        const collection = this.framework.database.collection('guilds');
+        let guild = await collection.findOne({ guild_id: guildId });
+        guild = {
+            _id: new ObjectId(),
+            guild_id: guildId,
+            lang: 'en',
+            prefix: 'z-',
+            public: false,
+            deleteCommands: false
+        };
+        await collection.insertOne(guild);
+        return guild;
     }
 
 }

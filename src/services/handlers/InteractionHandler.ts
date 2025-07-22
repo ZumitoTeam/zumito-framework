@@ -1,4 +1,4 @@
-import { ButtonInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, StringSelectMenuInteraction } from "discord.js";
+import { ButtonInteraction, Client, CommandInteraction, Interaction, ModalSubmitInteraction, StringSelectMenuInteraction, ChatInputCommandInteraction } from "discord.js";
 import { CommandManager } from "../managers/CommandManager";
 import { GuildDataGetter } from "../utilities/GuildDataGetter";
 import { ServiceContainer } from "../ServiceContainer";
@@ -47,7 +47,8 @@ export class InteractionHandler {
     }
     
     async handleCommandInteraction(interaction: CommandInteraction, guildSettings?: any) {
-        const subcommandName = (interaction.options as any).getSubcommand(false);
+        const options = (interaction as ChatInputCommandInteraction).options;
+        const subcommandName = options.getSubcommand(false);
         const commandName = interaction.commandName;
         let commandInstance: Command;
         if (subcommandName) {
@@ -61,7 +62,7 @@ export class InteractionHandler {
         const framework = ServiceContainer.getService(ZumitoFramework);
         const args = new Map<string, any>();
         commandInstance.args.forEach((arg) => {
-            const option = (interaction).options.get(
+            const option = options.get(
                 arg.name
             );
             if (option) {

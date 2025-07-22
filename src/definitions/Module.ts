@@ -10,7 +10,6 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js';
-import { DatabaseModel } from './DatabaseModel.js';
 import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
@@ -27,7 +26,6 @@ export abstract class Module {
     protected framework: ZumitoFramework;
     protected commands: CommandManager;
     protected events: Map<string, FrameworkEvent> = new Map();
-    protected models: Array<DatabaseModel> = [];
     static requeriments: ModuleRequeriments;
     
     protected commandManager: CommandManager; 
@@ -44,7 +42,6 @@ export abstract class Module {
         await this.registerCommands();
         await this.registerEvents();
         await this.registerTranslations();
-        await this.registerModels();
         await this.registerRoutes();
     }
 
@@ -150,33 +147,7 @@ export abstract class Module {
         )
     }
 
-    async registerModels() {
-        if (!fs.existsSync(path.join(this.path, 'models'))) return;
-        const files = fs.readdirSync(path.join(this.path, 'models'));
-        for (const file of files) {
-            if (file.endsWith('.d.ts')) continue;
-            if (file.endsWith('.ts') || file.endsWith('.js')) {
-                let model = await import(
-                    'file://' + `${this.path}/models/${file}`
-                ).catch((e) => {
-                    console.error(
-                        `[🔄🔴 ] Error loading ${file.slice(
-                            0,
-                            -3
-                        )} model on module ${this.constructor.name}`
-                    );
-                    console.error(e + '\n' + e.name + '\n' + e.stack);
-                });
-                model = Object.values(model)[0];
-                model = new model();
-                this.models.push(model);
-            }
-        }
-    }
 
-    getModels(): Array<DatabaseModel> {
-        return this.models;
-    }
 
     async registerRoutes() {
 

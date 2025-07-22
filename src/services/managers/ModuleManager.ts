@@ -1,5 +1,4 @@
 import { ZumitoFramework } from "../../ZumitoFramework.js";
-import { DatabaseModel } from "../../definitions/DatabaseModel.js";
 import { Module } from "../../definitions/Module.js";
 import fs from 'fs';
 import path from 'path';
@@ -65,10 +64,7 @@ export class ModuleManager {
         // Register module events
         this.framework.events = new Map([...this.framework.events, ...module.getEvents()]);
 
-        // Register models
-        module.getModels().forEach((model: DatabaseModel) => {
-            this.framework.models.push(model);
-        });
+        // Register models (eliminado, migración a MongoDB)
 
         /*
 

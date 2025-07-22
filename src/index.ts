@@ -15,7 +15,6 @@ import { CommandChoiceDefinition } from './definitions/commands/CommandChoiceDef
 import { CommandParameters } from './definitions/commands/CommandParameters.js';
 import { CommandType } from './definitions/commands/CommandType.js';
 import { DatabaseConfigLoader } from './services/utilities/DatabaseConfigLoader.js';
-import { DatabaseModel } from './definitions/DatabaseModel.js';
 import { EmojiFallback } from './services/EmojiFallback.js';
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/FrameworkSettings.js';
@@ -73,7 +72,6 @@ export {
     TextFormatter,
     EmojiFallback,
     DatabaseConfigLoader,
-    DatabaseModel,
     PresenceDataRule,
     RuledPresenceData,
     StatusManagerOptions,
