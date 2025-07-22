@@ -36,15 +36,18 @@ export class GuildDataGetter {
     public async getGuildSettings(guildId: string) {
         const collection = this.framework.database.collection('guilds');
         let guild = await collection.findOne({ guild_id: guildId });
-        guild = {
-            _id: new ObjectId(),
-            guild_id: guildId,
-            lang: 'en',
-            prefix: 'z-',
-            public: false,
-            deleteCommands: false
-        };
-        await collection.insertOne(guild);
+        console.log(guild);
+        if (!guild) {
+            guild = {
+                _id: new ObjectId(),
+                guild_id: guildId,
+                lang: 'en',
+                prefix: null,
+                public: false,
+                deleteCommands: false
+            };
+            await collection.insertOne(guild);
+        }
         return guild;
     }
 
