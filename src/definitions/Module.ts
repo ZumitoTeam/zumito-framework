@@ -13,6 +13,8 @@ import {
 import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
+import { ErrorHandler } from '../services/handlers/ErrorHandler.js';
+import { ErrorType } from './ErrorType.js';
 
 export type ModuleRequeriments = {
     modules: Array<string>;
@@ -29,12 +31,14 @@ export abstract class Module {
     static requeriments: ModuleRequeriments;
     
     protected commandManager: CommandManager; 
+    protected errorHandler: ErrorHandler;
 
     constructor(path, parameters?: ModuleParameters) {
         this.path = path;
         this.parameters = parameters;
         this.framework = ServiceContainer.getService(ZumitoFramework) as ZumitoFramework;
         this.commands = new CommandManager(this.framework);
+        this.errorHandler = ServiceContainer.getService(ErrorHandler); 
         
     }
 
@@ -167,9 +171,10 @@ export abstract class Module {
                 let route = await import(
                     'file://' + path.join(folderPath, file)
                 ).catch((e) => {
-                    console.error(
-                        `[🔄🔴 ] Error loading ${file.slice(0, -3)} route on module ${this.constructor.name}`
-                    );
+                    this.errorHandler.handleError(e, {
+                        type: ErrorType.RouteLoad,
+                        moduleName: this.constructor.name,
+                    });
                 });
                 route = Object.values(route)[0];
                 route = new route();

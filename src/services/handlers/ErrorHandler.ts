@@ -25,7 +25,19 @@ type OtherErrorOptions = BaseErrorOptions & {
     type: ErrorType.Other,
 }
 
-type ErrorOptions = CommandErrorOptions | ApiErrorOptions | OtherErrorOptions;
+type ModuleLoadErrorOptions = BaseErrorOptions & {
+    type: ErrorType.ModuleLoad,
+    moduleName: string,
+}
+
+type RouteLoadErrorOptions = BaseErrorOptions & {
+    type: ErrorType.RouteLoad,
+    path?: string,
+    method?: string,
+    moduleName?: string,
+}
+
+type ErrorOptions = CommandErrorOptions | ApiErrorOptions | OtherErrorOptions | ModuleLoadErrorOptions | RouteLoadErrorOptions;
 
 export class ErrorHandler {
 
@@ -52,6 +64,30 @@ export class ErrorHandler {
             console.line(error?.toString?.() || 'Unknown error');
             console.line('');
             console.groupEnd();
+        } else if (options?.type == ErrorType.ModuleLoad) {
+            console.group(`[❌] Error loading module ${options.moduleName}`);
+            console.line(chalk.red('Error:'));
+            console.line(error?.toString?.() || 'Unknown error');
+            console.line('');
+            console.groupEnd();
+        } else if (options?.type == ErrorType.RouteLoad) {
+            console.group(`[❌] Error loading route ${options.path}`);
+            
+            console.line(chalk.red('Error:'));
+            console.line(error?.toString?.() || 'Unknown error');
+            console.line('');
+
+            console.groupEnd();
+
+            if (options?.moduleName) {
+                console.line(chalk.blue('Module: ') + options.moduleName);
+            }
+            if (options?.method) {
+                console.line(chalk.blue('Method: ') + options.method);
+            }
+            if (options?.path) {
+                console.line(chalk.blue('Path: ') + options.path);
+            }
         } else {
             console.error(error?.toString?.() || 'Unknown error');
             console.line('');

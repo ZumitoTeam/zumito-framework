@@ -5,16 +5,18 @@ import path from 'path';
 import { ErrorHandler } from "../handlers/ErrorHandler.js";
 import { ModuleParameters } from "../../definitions/parameters/ModuleParameters.js";
 import { ServiceContainer } from "../ServiceContainer.js";
+import { ErrorType } from "../../definitions/ErrorType.js";
 
 export class ModuleManager {
 
     protected modules: Map<string, Module>;
     protected pendingInstancePool: Array<{module: any, rootPath: string, name?: string, options?: ModuleParameters}> = [];
-    protected framework: ZumitoFramework;
 
-    constructor(framework: ZumitoFramework) {
+    constructor(
+        protected framework: ZumitoFramework = ServiceContainer.getService(ZumitoFramework),
+        protected errorHandler: ErrorHandler = ServiceContainer.getService(ErrorHandler)
+    ) { 
         this.modules = new Map();
-        this.framework = framework;
     }
 
     set(name: string, module: Module) {
@@ -99,10 +101,10 @@ export class ModuleManager {
                     moduleInstance
                 );
             } catch (err) {
-                console.error(
-                    `[📦🔴] Error loading module ${name || moduleInstance?.constructor?.name}: ${err.message}`
-                );
-                console.error(err.stack);
+                this.errorHandler.handleError(err, {
+                    type: ErrorType.ModuleLoad,
+                    moduleName: name || moduleInstance?.constructor?.name
+                });
             }
         } else {
             //moduleInstance = new Module();

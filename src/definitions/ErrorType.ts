@@ -3,5 +3,7 @@ export enum ErrorType {
     CommandLoad,
     CommandRun,
     Api,
-    Other
+    Other,
+    ModuleLoad,
+    RouteLoad,
 }
