@@ -206,6 +206,9 @@ export class InteractionHandler {
                 `Command ${path[0]} not found or modal id bad formatted`
             );
         }
+        if (!guildSettings && interaction.guildId) {
+            guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
+        }
         const framework = ServiceContainer.getService(ZumitoFramework);
         if ((commandInstance as Command).binds?.modalSubmit) {
             const trans = this.translationManager.getShortHandMethod(
