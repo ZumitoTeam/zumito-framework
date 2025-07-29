@@ -24,7 +24,7 @@ const defaultConfig: FrameworkSettings = {
         clientId: process.env.DISCORD_CLIENT_ID!,
     },
     defaultPrefix: process.env.BOT_PREFIX || "z-",
-    mongoQueryString: process.env.MONGO_QUERY_STRING,
+    mongoQueryString: process.env.MONGO_QUERY_STRING!,
     logLevel: parseInt(process.env.LOGLEVEL || "3"),
 };
 
