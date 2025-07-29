@@ -3,6 +3,7 @@
 // eslint-disable-next-line check-file/filename-naming-convention
 import { ZumitoFramework, FrameworkSettings } from './index';
 import path from 'path';
+import fs from 'fs';
 
 import dotenv from 'dotenv';
 import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger';
