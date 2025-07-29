@@ -7,7 +7,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger';
 import { LauncherConfig } from './definitions/config/LauncherConfig';
-dotenv.config()
+dotenv.config();
  
 if (!process.env.DISCORD_TOKEN) {
     throw new Error("Discord Token not found (DISCORD_TOKEN)");
