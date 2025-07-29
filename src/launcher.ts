@@ -1,3 +1,6 @@
+#!/usr/bin/env node
+
+// eslint-disable-next-line check-file/filename-naming-convention
 import { ZumitoFramework, DatabaseConfigLoader, FrameworkSettings } from './index';
 import path from 'path';
 
