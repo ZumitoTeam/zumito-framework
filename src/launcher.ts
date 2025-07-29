@@ -4,7 +4,7 @@
 import { ZumitoFramework, FrameworkSettings } from './index';
 import path from 'path';
 
-import dotenv from 'dotenv'
+import dotenv from 'dotenv';
 import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger';
 import { LauncherConfig } from './definitions/config/LauncherConfig';
 dotenv.config()
