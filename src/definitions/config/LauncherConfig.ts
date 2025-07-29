@@ -5,5 +5,5 @@ export type LauncherConfig = {
     callbacks?: {
         load?: (bot: ZumitoFramework) => any;
     }
-} & FrameworkSettings;
+} & Partial<FrameworkSettings>;
 
