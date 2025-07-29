@@ -14,8 +14,8 @@ if (!process.env.DISCORD_TOKEN) {
     throw new Error("Discord Token not found (DISCORD_TOKEN)");
 } else if (!process.env.DISCORD_CLIENT_ID) {
     throw new Error("Discord Client ID not found (DISCORD_CLIENT_ID)");
-} else if (!process.env.MONGO_QUERY_STRING) {
-    throw new Error("No MongoDB connection string specified in .env file (MONGO_QUERY_STRING)");
+} else if (!process.env.MONGO_URI) {
+    throw new Error("No MongoDB connection string specified in .env file (MONGO_URI)");
 }
 
 const defaultConfig: FrameworkSettings = {
@@ -25,7 +25,7 @@ const defaultConfig: FrameworkSettings = {
         clientId: process.env.DISCORD_CLIENT_ID!,
     },
     defaultPrefix: process.env.BOT_PREFIX || "z-",
-    mongoQueryString: process.env.MONGO_QUERY_STRING!,
+    mongoQueryString: process.env.MONGO_URI!,
     logLevel: parseInt(process.env.LOGLEVEL || "3"),
 };
 
