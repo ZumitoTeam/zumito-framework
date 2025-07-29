@@ -41,6 +41,7 @@ import { PrefixResolver } from './services/utilities/PrefixResolver.js';
 export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
 export { Injectable } from './definitions/decorators/Injectable.decorator.js'
+export { LauncherConfig } from './definitions/config/LauncherConfig.js'
 
 ServiceContainer.addService(TextFormatter, []);
 ServiceContainer.addService(EmojiFallback, [discord.Client.name, TranslationManager.name]);
