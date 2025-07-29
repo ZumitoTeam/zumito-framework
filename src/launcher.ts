@@ -29,6 +29,10 @@ const defaultConfig: FrameworkSettings = {
 };
 
 const configFilePath = path.join(process.cwd(), 'zumito.config.ts');
+if (!fs.existsSync(configFilePath)) {
+    console.error(`Config file not found at ${configFilePath}. Please ensure the file exists.`);
+    process.exit(1);
+}
 import(configFilePath)
     .then(({ config: userConfig }: { config: LauncherConfig }) => {
         const config: FrameworkSettings = RecursiveObjectMerger.merge(defaultConfig, userConfig);
