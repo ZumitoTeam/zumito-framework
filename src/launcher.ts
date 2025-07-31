@@ -48,6 +48,7 @@ import(configFilePath)
             console.log(`Loaded ${bot.translations.getAll().size} translations`);
             // Log number of routes registered
             console.log(`Loaded ${bot.routes.length} routes`);
+            userConfig.callbacks?.load?.(bot);
         });
     })
     .catch((error) => {
