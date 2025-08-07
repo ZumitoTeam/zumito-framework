@@ -4,6 +4,7 @@
 import { ZumitoFramework, FrameworkSettings } from './index';
 import path from 'path';
 import fs from 'fs';
+import { pathToFileURL } from 'url';
 
 import dotenv from 'dotenv';
 import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger';
@@ -34,7 +35,7 @@ if (!fs.existsSync(configFilePath)) {
     console.error(`Config file not found at ${configFilePath}. Please ensure the file exists.`);
     process.exit(1);
 }
-import(configFilePath)
+import(pathToFileURL(configFilePath).href)
     .then(({ config: userConfig }: { config: LauncherConfig }) => {
         const config: FrameworkSettings = RecursiveObjectMerger.merge(defaultConfig, userConfig);
         new ZumitoFramework(config, (bot: ZumitoFramework) => { // Callback function when bot is ready
