@@ -271,9 +271,11 @@ export class ZumitoFramework {
         })
 
         // throw 404 if URL not found
-        this.app.all('*', (req, res) => {
-            return ApiResponse.notFoundResponse(res, 'Page not found');
-        });
+        if (!this.settings.webServer?.disableNotFoundHandler) {
+            this.app.all('*', (req, res) => {
+                return ApiResponse.notFoundResponse(res, 'Page not found');
+            });
+        }
 
         this.app.use((err, req, res, next) => {
             if (err.name === 'UnauthorizedError') {

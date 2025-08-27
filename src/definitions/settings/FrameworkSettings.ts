@@ -24,5 +24,6 @@ export interface FrameworkSettings {
     }[];
     webServer?: {
         port: number;
+        disableNotFoundHandler?: boolean;
     }
 }
