@@ -23,7 +23,7 @@ export interface FrameworkSettings {
         options?: ModuleParameters
     }[];
     webServer?: {
-        port: number;
+        port?: number;
         disableNotFoundHandler?: boolean;
     }
 }
