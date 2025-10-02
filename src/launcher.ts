@@ -53,6 +53,7 @@ import(pathToFileURL(configFilePath).href)
         });
     })
     .catch((error) => {
-        console.error(`Failed to load config file at ${configFilePath}:`, error.message || error);
+        console.error(`Failed to load config file at ${configFilePath}:`);
+        throw error;
         process.exit(1);
     });
