@@ -52,7 +52,13 @@ export class ModuleManager {
             return Module;
         }
         const module = await import('file://' + file);
-        return Object.values(module)[0];
+        const exports = Object.values(module);
+
+        const moduleClass = exports.find((candidate: any) => {
+            return Object.getPrototypeOf(candidate).name === 'Module';
+        });
+
+        return moduleClass || exports[0];
     }
 
     registerModule(module: InstanceType<typeof Module>) {
