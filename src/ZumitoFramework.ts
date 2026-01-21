@@ -318,26 +318,32 @@ export class ZumitoFramework {
         }
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+        // Bundles
         if (this.settings.bundles && this.settings.bundles.length > 0) {
             for (const bundle of this.settings.bundles) {
-                await this.registerBundle(bundle.path, bundle.options);
+                await this.modules.queueModuleForInitialization(bundle.path, undefined, bundle.options);
             }
         }
-        await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
+        // Base module
+        await this.modules.queueModuleForInitialization(path.join(__dirname, 'modules', 'core'), 'baseModule');
+        // Bundles en node_modules
         if (fs.existsSync(`${process.cwd()}/node_modules/.zumitoBundles`)) {
             const files = fs.readdirSync(`${process.cwd()}/node_modules/.zumitoBundles`);
             for (const file of files) {
-                await this.registerModule(`${process.cwd()}/node_modules/.zumitoBundles`, file);
+                await this.modules.queueModuleForInitialization(`${process.cwd()}/node_modules/.zumitoBundles/${file}`, file);
             }
         }
+        // Módulos locales
         if (modulesFolder) {
             const files = fs.readdirSync(modulesFolder);
             for (const file of files) {
-                await this.registerModule(modulesFolder, file);
+                await this.modules.queueModuleForInitialization(path.join(modulesFolder, file), file);
             }
         } else if (this.settings.srcMode == 'monoBundle') {
-            await this.registerModule(process.cwd(), 'src')
+            await this.modules.queueModuleForInitialization(process.cwd(), 'src');
         }
+        // Inicializar todos los módulos resolviendo dependencias
+        await this.modules.initializeAllModules();
 
     }
 
