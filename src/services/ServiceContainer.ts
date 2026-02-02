@@ -19,9 +19,26 @@ class ServiceContainerManager {
     }
 
     getService<T>(serviceClass: new (...args: any[]) => T | string): T {
+        const serviceType = typeof serviceClass === 'string' ? 'name' : 'class'; 
         const serviceName = typeof serviceClass === 'string' ? serviceClass : serviceClass.name;
         const service = this.services.get(serviceName);
-        if (!service) throw new Error(`Service ${serviceName} not found`);
+        if (!service) {
+            if (serviceType === 'class') {
+                const constructor = (serviceClass as any).prototype.constructor;
+                if (constructor.length === 0) {
+                    try {
+                        const instance = new (serviceClass as new (...args: any[]) => T)();
+                        return instance;
+                    } catch (error) {
+                        throw new Error(`Service ${serviceName} not found. tried to instance with error: ${error}`);
+                    }
+                } else {
+                    throw new Error(`Service ${serviceName} not found`);
+                }
+            } else {
+                throw new Error(`Service ${serviceName} not found`);
+            }
+        }
         if (service.singleton && service.instance) return service.instance as T;
         const dependencies = service.dependencies.map(dependency => this.getServiceByName(dependency));
         const instance = new service.class(...dependencies);
