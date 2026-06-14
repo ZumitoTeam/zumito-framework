@@ -1,0 +1,83 @@
+name: CD
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "lts/*"
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: npm clean-install
+      - name: Build
+        run: npm run build
+      - name: Bump version and push tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.tag_version.outputs.new_tag }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          body: ${{ steps.tag_version.outputs.changelog }}
+      - name: Set package.json version
+        run: npm version "${{ steps.tag_version.outputs.new_tag }}" --no-git-tag-version
+      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
+        run: npm audit signatures
+      - name: Publish NPM
+        run: npm publish --provenance --access public
+
+  publish-dev:
+    name: Publish dev tag
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Publish dev tag
+        id: publish
+        run: |
+          new_version=$(npm version prerelease --preid dev-${{github.run_id}} --no-git-tag-version)
+          echo "New version: $new_version"
+          npm publish --tag=dev --provenance
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
+      - name: Comment on pull request
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            Beta tag version created: `${{ steps.publish.outputs.new_version }}`.
+            You can install it with:
+            ```shell
+            npm install zumito-framework@${{ steps.publish.outputs.new_version }}
+            ```
