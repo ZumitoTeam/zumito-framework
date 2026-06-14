@@ -9,6 +9,13 @@ export class EmojiFallback {
     constructor(client: Client, translator: TranslationManager) {
         this.client = client;
         this.translator = translator;
+        if (client.isReady()) {
+            client.application?.emojis?.fetch().catch(() => {});
+        } else {
+            client.once('ready', () => {
+                client.application?.emojis?.fetch().catch(() => {});
+            });
+        }
     }
 
     public getEmoji(
