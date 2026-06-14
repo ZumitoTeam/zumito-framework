@@ -49,6 +49,9 @@ export abstract class Module {
         await this.registerRoutes();
     }
 
+    async onAllReady() {
+    }
+
     async registerCommands() {
         const commandsFolder = path.join(this.path, 'commands');
         if (fs.existsSync(commandsFolder)) {

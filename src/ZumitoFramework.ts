@@ -207,6 +207,10 @@ export class ZumitoFramework {
         if (this.settings.statusOptions) {
             this.statusManager = new StatusManager(this, this.settings.statusOptions);
         }
+        this.eventEmitter.emit('ready');
+        for (const module of this.modules.getAll().values()) {
+            await module.onAllReady();
+        }
     }
 
     private async initializeDatabase() {
