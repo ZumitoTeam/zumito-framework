@@ -19,7 +19,12 @@ export class EmojiFallback {
             emojiId = this.translator.get(emojiId);
         }
         const emoji = this.client.emojis.cache.get(emojiId);
-        return emoji?.toString() || fallbackEmoji;
+        if (emoji) return emoji.toString();
+
+        const appEmoji = this.getApplicationEmoji(emojiId);
+        if (appEmoji) return appEmoji.toString();
+
+        return fallbackEmoji;
     }
 
     public getEmojiByName(
@@ -29,7 +34,12 @@ export class EmojiFallback {
         const emoji = this.client.emojis.cache.find(
             (emoji) => emoji.name === emojiName
         );
-        return emoji?.toString() || fallbackEmoji;
+        if (emoji) return emoji.toString();
+
+        const appEmoji = this.getApplicationEmojiByName(emojiName);
+        if (appEmoji) return appEmoji.toString();
+
+        return fallbackEmoji;
     }
 
     public getEmojiByIdentifier(
@@ -40,6 +50,23 @@ export class EmojiFallback {
             emojiId = this.translator.get(emojiId);
         }
         const emoji = this.client.emojis.cache.find((emoji) => emoji.id === emojiId);
-        return emoji?.toString() || fallbackEmoji;
+        if (emoji) return emoji.toString();
+
+        const appEmoji = this.getApplicationEmoji(emojiId);
+        if (appEmoji) return appEmoji.toString();
+
+        return fallbackEmoji;
+    }
+
+    public getApplicationEmoji(emojiId: string) {
+        if (!this.client.application) return undefined;
+        return this.client.application.emojis.cache.get(emojiId);
+    }
+
+    public getApplicationEmojiByName(emojiName: string) {
+        if (!this.client.application) return undefined;
+        return this.client.application.emojis.cache.find(
+            (emoji) => emoji.name === emojiName
+        );
     }
 }
