@@ -5,20 +5,25 @@ export class EmojiFallback {
 
     client: Client;
     translator: TranslationManager;
+    private applicationEmojisPromise: Promise<unknown> | null = null;
 
     constructor(client: Client, translator: TranslationManager) {
         this.client = client;
         this.translator = translator;
-        if (client.isReady()) {
-            client.application?.emojis?.fetch().catch(() => {});
-        } else {
-            client.once('ready', () => {
-                client.application?.emojis?.fetch().catch(() => {});
-            });
-        }
     }
 
-    public getEmoji(
+    private ensureApplicationEmojis(): Promise<unknown> {
+        if (!this.applicationEmojisPromise) {
+            if (this.client.application) {
+                this.applicationEmojisPromise = this.client.application.emojis.fetch().catch(() => {});
+            } else {
+                this.applicationEmojisPromise = Promise.resolve();
+            }
+        }
+        return this.applicationEmojisPromise;
+    }
+
+    public async getEmoji(
         emojiId: string,
         fallbackEmoji: any
     ) {
@@ -28,13 +33,13 @@ export class EmojiFallback {
         const emoji = this.client.emojis.cache.get(emojiId);
         if (emoji) return emoji.toString();
 
-        const appEmoji = this.getApplicationEmoji(emojiId);
+        const appEmoji = await this.getApplicationEmoji(emojiId);
         if (appEmoji) return appEmoji.toString();
 
         return fallbackEmoji;
     }
 
-    public getEmojiByName(
+    public async getEmojiByName(
         emojiName: string,
         fallbackEmoji: any
     ) {
@@ -43,13 +48,13 @@ export class EmojiFallback {
         );
         if (emoji) return emoji.toString();
 
-        const appEmoji = this.getApplicationEmojiByName(emojiName);
+        const appEmoji = await this.getApplicationEmojiByName(emojiName);
         if (appEmoji) return appEmoji.toString();
 
         return fallbackEmoji;
     }
 
-    public getEmojiByIdentifier(
+    public async getEmojiByIdentifier(
         emojiId: string,
         fallbackEmoji: any
     ) {
@@ -59,19 +64,21 @@ export class EmojiFallback {
         const emoji = this.client.emojis.cache.find((emoji) => emoji.id === emojiId);
         if (emoji) return emoji.toString();
 
-        const appEmoji = this.getApplicationEmoji(emojiId);
+        const appEmoji = await this.getApplicationEmoji(emojiId);
         if (appEmoji) return appEmoji.toString();
 
         return fallbackEmoji;
     }
 
-    public getApplicationEmoji(emojiId: string) {
+    public async getApplicationEmoji(emojiId: string) {
         if (!this.client.application) return undefined;
+        await this.ensureApplicationEmojis();
         return this.client.application.emojis.cache.get(emojiId);
     }
 
-    public getApplicationEmojiByName(emojiName: string) {
+    public async getApplicationEmojiByName(emojiName: string) {
         if (!this.client.application) return undefined;
+        await this.ensureApplicationEmojis();
         return this.client.application.emojis.cache.find(
             (emoji) => emoji.name === emojiName
         );
