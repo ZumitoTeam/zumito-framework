@@ -38,6 +38,8 @@ import { CommandManager } from './services/managers/CommandManager.js';
 import { ErrorType } from './definitions/ErrorType.js';
 import { InviteUrlGenerator } from './services/utilities/InviteUrlGenerator.js';
 import { PrefixResolver } from './services/utilities/PrefixResolver.js';
+import { CommandExecutionChecker } from './services/CommandExecutionChecker.js';
+export type { CommandExecutionRule, CommandExecutionContext, CommandExecutionCheck, CommandExecutionType } from './definitions/CommandExecutionRule.js';
 export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
 export { Injectable } from './definitions/decorators/Injectable.decorator.js'
@@ -54,6 +56,8 @@ ServiceContainer.addService(InteractionHandler, []);
 ServiceContainer.addService(InviteUrlGenerator, []);
 
 ServiceContainer.addService(PrefixResolver, []);
+
+ServiceContainer.addService(CommandExecutionChecker, [], true);
 
 ServiceContainer.addService(ErrorHandler, ['ZumitoFramework']);
 
@@ -94,4 +98,5 @@ export {
     CommandManager,
     InviteUrlGenerator,
     PrefixResolver,
+    CommandExecutionChecker,
 };

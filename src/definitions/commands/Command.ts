@@ -2,6 +2,7 @@ import { CommandArgDefinition } from './CommandArgDefinition.js';
 import { CommandParameters, PrefixCommandParameters, SlashCommandParameters } from './CommandParameters.js';
 import { CommandType } from './CommandType.js';
 import { CommandBinds } from './CommandBinds.js';
+import type { CommandExecutionRule } from '../CommandExecutionRule.js';
 
 /**
  * @name Command
@@ -203,6 +204,24 @@ export abstract class Command {
      * @see {@link CommandType}
      */
     type: string = CommandType.any;
+    /**
+     * @name rules
+     * @description Array of {@link CommandExecutionRule} that are checked before the command is executed.
+     * Each rule can block execution with a custom error message.
+     * @type {CommandExecutionRule[]}
+     * @default undefined
+     * @example
+     * ```ts
+     * export class PremiumCommand extends Command {
+     *   rules = [{
+     *     canRun: (ctx) => ctx.guildSettings?.premium === true,
+     *     errorMessage: 'This command requires a premium server.',
+     *   }];
+     * }
+     * ```
+     * @see {@link CommandExecutionRule}
+     */
+    rules?: CommandExecutionRule[];
 
     parent?: string;
     binds?: CommandBinds;

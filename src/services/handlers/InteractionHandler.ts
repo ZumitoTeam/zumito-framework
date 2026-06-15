@@ -10,6 +10,7 @@ import { EventManager } from "../managers/EventManager";
 import { InteractionHandlerSettings } from "../../definitions/settings/InteractionHandlerSettings";
 import { ErrorHandler } from "./ErrorHandler";
 import { ErrorType } from "../../definitions/ErrorType";
+import { CommandExecutionChecker } from "../CommandExecutionChecker";
 import 'reflect-metadata';
 
 export class InteractionHandler {
@@ -95,6 +96,27 @@ export class InteractionHandler {
         if (!guildSettings && interaction.guildId) {
             guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
         }
+
+        const executionChecker = ServiceContainer.getService(CommandExecutionChecker);
+        const check = await executionChecker.check({
+            command: commandInstance,
+            type: 'slash',
+            framework,
+            client: this.client,
+            guild: interaction.guild,
+            member: interaction.member as any,
+            guildSettings,
+            interaction,
+            args,
+        });
+        if (!check.passed) {
+            await interaction.reply({
+                content: check.message || 'You cannot run this command.',
+                ephemeral: true,
+            });
+            return;
+        }
+
         const trans = this.translationManager.getShortHandMethod(
             'command.' + commandInstance.name,
             guildSettings?.lang
@@ -146,6 +168,26 @@ export class InteractionHandler {
         if (!guildSettings && interaction.guildId) {
             guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
         }
+
+        const executionChecker = ServiceContainer.getService(CommandExecutionChecker);
+        const check = await executionChecker.check({
+            command: commandInstance,
+            type: 'button',
+            framework,
+            client: this.client,
+            guild: interaction.guild,
+            member: interaction.member as any,
+            guildSettings,
+            interaction,
+        });
+        if (!check.passed) {
+            await interaction.reply({
+                content: check.message || 'You cannot use this button.',
+                ephemeral: true,
+            });
+            return;
+        }
+
         // If the command has impements ButtonPress class then execute the method
         if (
             commandInstance.constructor.prototype.hasOwnProperty('buttonPressed')
@@ -169,12 +211,32 @@ export class InteractionHandler {
         if (!guildSettings && interaction.guildId) {
             guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
         }
+
+        const framework = ServiceContainer.getService(ZumitoFramework);
+        const executionChecker = ServiceContainer.getService(CommandExecutionChecker);
+        const check = await executionChecker.check({
+            command: commandInstance,
+            type: 'selectMenu',
+            framework,
+            client: this.client,
+            guild: interaction.guild,
+            member: interaction.member as any,
+            guildSettings,
+            interaction,
+        });
+        if (!check.passed) {
+            await interaction.reply({
+                content: check.message || 'You cannot use this menu.',
+                ephemeral: true,
+            });
+            return;
+        }
+
         const trans = this.translationManager.getShortHandMethod(
             'command.' + commandInstance.name,
             guildSettings?.lang
         );
 
-        const framework = ServiceContainer.getService(ZumitoFramework);
         if (commandInstance.binds?.selectMenu) {
             commandInstance.binds?.selectMenu({
                 path,
@@ -210,6 +272,24 @@ export class InteractionHandler {
             guildSettings = await ServiceContainer.getService(GuildDataGetter).getGuildSettings(interaction.guildId);
         }
         const framework = ServiceContainer.getService(ZumitoFramework);
+        const executionChecker = ServiceContainer.getService(CommandExecutionChecker);
+        const check = await executionChecker.check({
+            command: commandInstance,
+            type: 'modal',
+            framework,
+            client: this.client,
+            guild: interaction.guild,
+            member: interaction.member as any,
+            guildSettings,
+            interaction,
+        });
+        if (!check.passed) {
+            await interaction.reply({
+                content: check.message || 'You cannot submit this form.',
+                ephemeral: true,
+            });
+            return;
+        }
         if ((commandInstance as Command).binds?.modalSubmit) {
             const trans = this.translationManager.getShortHandMethod(
                 'command.' + commandInstance.name,

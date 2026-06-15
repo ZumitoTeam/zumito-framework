@@ -23,6 +23,7 @@ import { ZumitoFramework } from '../../../../../ZumitoFramework.js';
 import { GuildDataGetter } from '../../../../../services/utilities/GuildDataGetter.js';
 import { ErrorHandler } from '../../../../../services/handlers/ErrorHandler.js';
 import { ErrorType } from '../../../../../definitions/ErrorType.js';
+import { CommandExecutionChecker } from '../../../../../services/CommandExecutionChecker.js';
 
 export class MessageCreate extends FrameworkEvent {
     
@@ -72,68 +73,6 @@ export class MessageCreate extends FrameworkEvent {
 
             if (!commandInstance) return;
 
-            if (message.guild == null && commandInstance.dm == false) return;
-            if (
-                commandInstance.adminOnly ||
-                commandInstance.userPermissions.length > 0
-            ) {
-                let denied = false;
-                if (
-                    this.memberPermissionChecker.hasPermissionOnChannel(
-                        message.member,
-                        message.channel as TextChannel,
-                        PermissionsBitField.Flags.Administrator
-                    ) ||
-                    message.member.id != message.guild.ownerId
-                ) {
-                    if (commandInstance.userPermissions.length > 0) {
-                        commandInstance.userPermissions.forEach(
-                            (permission) => {
-                                if (
-                                    !this.memberPermissionChecker.hasPermissionOnChannel(
-                                        message.member,
-                                        message.channel as TextChannel,
-                                        permission
-                                    )
-                                ) {
-                                    denied = true;
-                                }
-                            }
-                        );
-                    }
-                }
-                if (denied) {
-                    return message.reply({
-                        content:
-                            'You do not have permission to use this command.',
-                        allowedMentions: {
-                            repliedUser: false,
-                        },
-                    });
-                }
-            }
-
-            if (message.channel.isTextBased) {
-                const channel: TextChannel = message.channel as TextChannel;
-                // Check command is nsfw and if channel is allowed
-                if (
-                    commandInstance.nsfw &&
-                    !channel.nsfw &&
-                    !channel
-                        .permissionsFor(message.member)
-                        .has(PermissionsBitField.Flags.Administrator) &&
-                    message.member.id != message.guild.ownerId
-                ) {
-                    return message.reply({
-                        content:
-                            'This command is nsfw and this channel is not nsfw.',
-                        allowedMentions: {
-                            repliedUser: false,
-                        },
-                    });
-                }
-            }
-
             try {
                 const guildSettings: any = await this.guildDataGetter.getGuildSettings(message.guildId);
                 const parsedArgsResponse = await CommandParser.parseFromSplitedString(args, commandInstance.args, message.guild)
@@ -146,7 +85,26 @@ export class MessageCreate extends FrameworkEvent {
                     }); 
                 }
                 const parsedArgs = parsedArgsResponse.parsedArgs;
-                           
+
+                const executionChecker = ServiceContainer.getService(CommandExecutionChecker);
+                const check = await executionChecker.check({
+                    command: commandInstance,
+                    type: 'prefix',
+                    framework: this.framework,
+                    client: this.framework.client,
+                    guild: message.guild,
+                    member: message.member,
+                    guildSettings,
+                    message,
+                    args: parsedArgs,
+                });
+                if (!check.passed) {
+                    return message.reply({
+                        content: check.message || 'You cannot run this command.',
+                        allowedMentions: { repliedUser: false },
+                    });
+                }
+
                 await commandInstance.execute({
                     message,
                     args: parsedArgs,

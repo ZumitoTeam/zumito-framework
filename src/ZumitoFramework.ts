@@ -36,6 +36,7 @@ import { ErrorType } from './definitions/ErrorType.js';
 
 import { Db } from 'mongodb';
 import { MongoService } from './services/MongoService.js';
+import { registerDefaultExecutionRules } from './modules/core/baseModule/defaultRules.js';
 
 // import better-logging
 
@@ -202,6 +203,7 @@ export class ZumitoFramework {
         this.eventManager.addEventEmitter('framework', this.eventEmitter);
         
         await this.registerModules();
+        registerDefaultExecutionRules();
         await this.refreshSlashCommands();
         this.startApiServer();
         if (this.settings.statusOptions) {
