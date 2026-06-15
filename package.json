@@ -12,7 +12,8 @@
     "/baseModule"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsc",
     "build-watch": "tsc -w",
     "lint": "eslint .",
@@ -47,17 +48,20 @@
     "@types/node": "^18.19.44",
     "@typescript-eslint/eslint-plugin": "^5.48.2",
     "@typescript-eslint/parser": "^5.48.2",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^8.32.0",
     "eslint-config-prettier": "^8.6.0",
     "eslint-plugin-check-file": "^2.2.0",
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.8.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^1.6.1"
   },
   "type": "module",
   "exports": {
     ".": "./dist/index.js",
-    "./discord": "./dist/discord/index.js"
+    "./discord": "./dist/discord/index.js",
+    "./testing": "./dist/testing/index.js"
   },
   "typesVersions": {
     "*": {
@@ -66,6 +70,9 @@
       ],
       "discord": [
         "dist/discord/index.d.ts"
+      ],
+      "testing": [
+        "dist/testing/index.d.ts"
       ]
     }
   },
