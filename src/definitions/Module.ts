@@ -1,6 +1,5 @@
 import { ZumitoFramework } from '../ZumitoFramework.js';
 import { Command } from './commands/Command.js';
-import { EventParameters } from './parameters/EventParameters.js';
 import { FrameworkEvent } from './FrameworkEvent.js';
 import * as fs from 'fs';
 import path from 'path';
@@ -10,7 +9,6 @@ import {
     ModalSubmitInteraction,
     StringSelectMenuInteraction,
 } from 'discord.js';
-import { CommandManager } from '../services/managers/CommandManager.js';
 import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
 import { ErrorHandler } from '../services/handlers/ErrorHandler.js';
@@ -26,20 +24,16 @@ export abstract class Module {
     protected path: string;
     protected parameters: ModuleParameters;
     protected framework: ZumitoFramework;
-    protected commands: CommandManager;
     protected events: Map<string, FrameworkEvent> = new Map();
     static requeriments: ModuleRequeriments;
     
-    protected commandManager: CommandManager; 
     protected errorHandler: ErrorHandler;
 
     constructor(path, parameters?: ModuleParameters) {
         this.path = path;
         this.parameters = parameters;
         this.framework = ServiceContainer.getService(ZumitoFramework) as ZumitoFramework;
-        this.commands = new CommandManager(this.framework);
         this.errorHandler = ServiceContainer.getService(ErrorHandler); 
-        
     }
 
     async initialize() {
@@ -55,22 +49,16 @@ export abstract class Module {
     async registerCommands() {
         const commandsFolder = path.join(this.path, 'commands');
         if (fs.existsSync(commandsFolder)) {
-            await this.commands.loadCommandsFolder(commandsFolder);
+            await this.framework.commands.loadCommandsFolder(commandsFolder);
 
-            // register watcher
             if (process.env.DEBUG) {
-                /*
-                    Debug only cause in prod environment commands should't be changed.
-                    Appart from that, esm module cache invalidation is not working properly
-                    and can cause memory leaks and crashes.
-                */
-                this.commands.watchCommandsFolder(commandsFolder)
+                this.framework.commands.watchCommandsFolder(commandsFolder);
             }
         }
     }
 
     getCommands(): Map<string, Command> {
-        return this.commands.getAll();
+        return this.framework.commands.getAll();
     }
 
     async registerEvents() {
@@ -157,7 +145,6 @@ export abstract class Module {
 
 
     async registerRoutes() {
-
         const folderPath = path.join(this.path, 'routes');
         if (fs.existsSync(folderPath)) {
             await this.registerRoutesFolder('');

@@ -1,9 +1,8 @@
 import { Translation } from '../../definitions/Translation.js';
 import fs from 'fs';
 import path from 'path';
-import * as chokidar from 'chokidar';
-import boxen from 'boxen';
 import chalk from "chalk";
+import { FileWatcher } from '../utilities/FileWatcher.js';
 
 export class TranslationManager {
     private translations: Map<string, Translation> = new Map();
@@ -106,30 +105,23 @@ export class TranslationManager {
     }
 
     watchTranslationFolder(folderPath: string, baseKey: string) {
-        chokidar
-            .watch(path.resolve(folderPath), {
-                ignored: /^\./,
-                persistent: true,
-                ignoreInitial: true,
-            })
-            .on('add', async (filePath: string) => {
+        new FileWatcher().watch(folderPath, {
+            onAdd: async (filePath: string) => {
                 const json = await this.loadTranslationFile(filePath);
                 const lang = filePath.replace(/^.*[\\/]/, '').slice(0, -5);
                 this.importTranslationsJson(baseKey, lang, json);
                 console.debug('[🆕🟢 ] Translations file ' + chalk.blue(filePath) + ' loaded');
-            })
-            .on('change', async (filePath: string) => {
+            },
+            onChange: async (filePath: string) => {
                 const json = await this.loadTranslationFile(filePath);
                 const lang = filePath.replace(/^.*[\\/]/, '').slice(0, -5);
                 this.importTranslationsJson(baseKey, lang, json);
                 console.debug('[🆕🟢 ] Translations file ' + chalk.blue(filePath) + ' loaded');
-            })
-            .on('error', (error: Error) => {
-                console.error('[🔄🔴 ] Error reloading translation file');
-                console.log(boxen(error + '\n' + error.stack, { padding: 1 }));
-            })
-            // TODO: Handle file removal
-            //.on('unlink', function(path) {console.log('File', path, 'has been removed');})
+            },
+            onUnlink: (filePath: string) => {
+                console.debug('[🔄🟡] Translations file ' + chalk.blue(filePath) + ' removed');
+            },
+        }, 'translation');
     }
 
     getShortHandMethod(keyPrefix: string, language?: string) {

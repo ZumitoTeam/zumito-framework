@@ -173,6 +173,7 @@ export class ZumitoFramework {
         ServiceContainer.addService(TranslationManager, [], true, this.translations);
         ServiceContainer.addService(CommandManager, [], true, this.commands);
         ServiceContainer.addService(EventManager, [], true, this.eventManager);
+        ServiceContainer.addService(SlashCommandRefresher, [], true, new SlashCommandRefresher(this));
 
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;

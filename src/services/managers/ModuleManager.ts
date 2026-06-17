@@ -62,24 +62,8 @@ export class ModuleManager {
     }
 
     registerModule(module: InstanceType<typeof Module>) {
-        // Register module commands
-        if (module.getCommands()) {
-            module.getCommands().forEach((command) => {
-                this.framework.commands.set(command.name, command);
-            });
-        }
-
         // Register module events
         this.framework.events = new Map([...this.framework.events, ...module.getEvents()]);
-
-        // Register models (eliminado, migración a MongoDB)
-
-        /*
-
-        // Register module routes
-        this.routes = new Map([...this.routes, ...moduleInstance.getRoutes()]);
-
-        */
     }
 
     async instanceModule(module: any, rootPath: string, name?: string, options?: ModuleParameters) {
