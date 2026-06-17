@@ -49,7 +49,7 @@ export class CommandManager {
      * @param filePath - Absolute path to command file
      * @returns {Promise<Command>}
      */
-    async loadCommandFile(filePath: string): Promise<any> {
+    async loadCommandFile(filePath: string, silent = false): Promise<any> {
         if (!filePath.endsWith('.js') && !filePath.endsWith('.ts')) {
             return;
         }
@@ -68,7 +68,9 @@ export class CommandManager {
             command = new command();
             const commandName = command.constructor.name.toLowerCase();
             this.commands.set(commandName, command);
-            console.debug('[🆕🟢 ] Command ' + chalk.blue(baseName) + ' loaded');
+            if (!silent) {
+                console.debug('[🆕🟢 ] Command ' + chalk.blue(baseName) + ' loaded');
+            }
             return command;
         } catch (error: any) {
             this.errorHandler.handleError(error, {
@@ -90,7 +92,7 @@ export class CommandManager {
         for (const file of files) {
             if (file.endsWith('.d.ts')) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
-                const command = await this.loadCommandFile(path.join(folderPath, file));
+                const command = await this.loadCommandFile(path.join(folderPath, file), true);
                 if (command) {
                     const commandName = command.constructor.name.toLowerCase();
                     if (options?.blacklist && options.blacklist.includes(commandName)) continue;

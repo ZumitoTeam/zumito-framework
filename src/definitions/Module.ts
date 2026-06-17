@@ -67,7 +67,7 @@ export abstract class Module {
         for (const file of files) {
             // if file is folder
             if (fs.lstatSync(path.join(this.path, 'events', file)).isDirectory()) {
-                console.log('registering events folder ' + file);
+                console.debug('registering events folder ' + file);
                 this.registerEventsFolder(file);
             }
         }
