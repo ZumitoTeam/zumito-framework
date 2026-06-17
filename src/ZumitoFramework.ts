@@ -3,6 +3,7 @@ import * as url from 'url';
 
 import {
     Client,
+    Events,
     GuildMember,
     TextChannel,
 } from 'discord.js';
@@ -376,7 +377,7 @@ export class ZumitoFramework {
         ServiceContainer.addService(Client, [], true, this.client);
 
         await new Promise<void>((resolve) => {
-            this.client.on('ready', () => {
+            this.client.on(Events.ClientReady, () => {
                 // Bot emoji
                 console.log('[🤖🟢] Discord client ready');
                 resolve();
