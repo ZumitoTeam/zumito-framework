@@ -8,16 +8,18 @@ import { pathToFileURL } from 'url';
 
 import dotenv from 'dotenv';
 import { RecursiveObjectMerger } from './services/utilities/RecursiveObjectMerger';
+import { EnvValidator } from './services/utilities/EnvValidator';
+import { BotReadyLogger } from './services/utilities/BotReadyLogger';
 import { LauncherConfig } from './definitions/config/LauncherConfig';
 dotenv.config();
- 
-if (!process.env.DISCORD_TOKEN) {
-    throw new Error("Discord Token not found (DISCORD_TOKEN)");
-} else if (!process.env.DISCORD_CLIENT_ID) {
-    throw new Error("Discord Client ID not found (DISCORD_CLIENT_ID)");
-} else if (!process.env.MONGO_URI) {
-    throw new Error("No MongoDB connection string specified in .env file (MONGO_URI)");
-}
+
+const REQUIRED_ENV_VARS = {
+    DISCORD_TOKEN: 'Discord Bot Token',
+    DISCORD_CLIENT_ID: 'Discord Client ID',
+    MONGO_URI: 'MongoDB connection URI',
+};
+
+EnvValidator.validate(REQUIRED_ENV_VARS);
 
 const defaultConfig: FrameworkSettings = {
     discordClientOptions: {
@@ -38,17 +40,8 @@ if (!fs.existsSync(configFilePath)) {
 import(pathToFileURL(configFilePath).href)
     .then(({ config: userConfig }: { config: LauncherConfig }) => {
         const config: FrameworkSettings = RecursiveObjectMerger.merge(defaultConfig, userConfig);
-        new ZumitoFramework(config, (bot: ZumitoFramework) => { // Callback function when bot is ready
-            // Log number of commands loaded
-            console.log(`Loaded ${bot.commands.size} commands`);
-            // Log number of events loaded
-            console.log(`Loaded ${bot.events.size} events`);
-            // Log number of modules loaded
-            console.log(`Loaded ${bot.modules.size} modules`);
-            // Log number of translations loaded
-            console.log(`Loaded ${bot.translations.getAll().size} translations`);
-            // Log number of routes registered
-            console.log(`Loaded ${bot.routes.length} routes`);
+        new ZumitoFramework(config, (bot: ZumitoFramework) => {
+            BotReadyLogger.log(bot);
             userConfig.callbacks?.load?.(bot);
         });
     })
