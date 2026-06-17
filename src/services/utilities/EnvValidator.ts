@@ -29,7 +29,8 @@ export class EnvValidator {
         const envPath = path.join(process.cwd(), '.env');
         const hasEnvFile = fs.existsSync(envPath);
 
-        console.error(`\n${divider}`);
+        console.error('');
+        console.error(divider);
         console.error(`  ${chalk.bold.red('CONFIGURATION ERROR')} — Missing environment variables`);
         console.error(divider);
 
@@ -51,7 +52,8 @@ export class EnvValidator {
         } else {
             console.error(`  ${chalk.dim('.env file found but missing required variables.')}`);
         }
-        console.error(divider + '\n');
+        console.error(divider);
+        console.error('');
 
         process.exit(1);
     }
