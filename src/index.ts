@@ -39,6 +39,15 @@ import { ErrorType } from './definitions/ErrorType.js';
 import { InviteUrlGenerator } from './services/utilities/InviteUrlGenerator.js';
 import { PrefixResolver } from './services/utilities/PrefixResolver.js';
 import { CommandExecutionChecker } from './services/CommandExecutionChecker.js';
+import { DatabaseManager } from 'zumito-db';
+
+export { Collection, Field, HasMany, BelongsTo, HasOne, Migration, Repository, QueryBuilder } from 'zumito-db';
+export type { CollectionOptions, FieldOptions, HasManyOptions, BelongsToOptions, HasOneOptions } from 'zumito-db';
+export type { 
+    FieldType, Operator, WhereClause, SortClause, QueryIR,
+    FieldMetadata, RelationMetadata, ModelMetadata, DriverConfig, DatabaseConfig,
+    DatabaseDriver 
+} from 'zumito-db';
 export type { CommandExecutionRule, CommandExecutionContext, CommandExecutionCheck, CommandExecutionType } from './definitions/CommandExecutionRule.js';
 export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParameters.js'
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
@@ -99,4 +108,5 @@ export {
     InviteUrlGenerator,
     PrefixResolver,
     CommandExecutionChecker,
+    DatabaseManager,
 };

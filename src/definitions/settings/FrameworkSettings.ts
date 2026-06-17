@@ -1,8 +1,9 @@
 import { ModuleParameters } from "../parameters/ModuleParameters";
 import { StatusManagerOptions } from "../StatusManagerOptions";
+import type { DatabaseConfig } from 'zumito-db';
 
 export interface FrameworkSettings {
-    mongoQueryString: string;
+    mongoQueryString?: string;
     logLevel?: number;
     debug?: boolean;
     discordClientOptions: {
@@ -25,5 +26,14 @@ export interface FrameworkSettings {
     webServer?: {
         port?: number;
         disableNotFoundHandler?: boolean;
-    }
+    };
+    /**
+     * New database configuration for zumito-db.
+     * If omitted, falls back to `mongoQueryString` with MongoDB driver.
+     */
+    database?: Partial<DatabaseConfig> & { migrations?: any[] };
+    /**
+     * Model classes to register with zumito-db.
+     */
+    models?: any[];
 }

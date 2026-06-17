@@ -13,6 +13,7 @@ import { ServiceContainer } from '../services/ServiceContainer.js';
 import { ModuleParameters } from './parameters/ModuleParameters.js';
 import { ErrorHandler } from '../services/handlers/ErrorHandler.js';
 import { ErrorType } from './ErrorType.js';
+import { getModelMetadata } from 'zumito-db';
 
 export type ModuleRequeriments = {
     modules: Array<string>;
@@ -41,6 +42,7 @@ export abstract class Module {
         await this.registerEvents();
         await this.registerTranslations();
         await this.registerRoutes();
+        await this.registerModels();
     }
 
     async onAllReady() {
@@ -142,6 +144,38 @@ export abstract class Module {
     }
 
 
+
+    async registerModels() {
+        const modelsFolder = path.join(this.path, 'models');
+        if (!fs.existsSync(modelsFolder)) return;
+
+        const db = this.framework.db;
+        if (!db) return;
+
+        const files = fs.readdirSync(modelsFolder);
+        for (const file of files) {
+            if (file.endsWith('.d.ts')) continue;
+            if (file.endsWith('.js') || file.endsWith('.ts')) {
+                const mod = await import(
+                    'file://' + path.join(modelsFolder, file)
+                ).catch((e) => {
+                    this.errorHandler.handleError(e, {
+                        type: ErrorType.ModuleLoad,
+                        moduleName: this.constructor.name,
+                    });
+                });
+
+                if (!mod) continue;
+
+                // Register every exported class that has @Collection metadata
+                for (const exportValue of Object.values(mod)) {
+                    if (typeof exportValue === 'function' && getModelMetadata(exportValue)) {
+                        db.registerModel(exportValue);
+                    }
+                }
+            }
+        }
+    }
 
     async registerRoutes() {
         const folderPath = path.join(this.path, 'routes');

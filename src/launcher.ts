@@ -16,7 +16,6 @@ dotenv.config();
 const REQUIRED_ENV_VARS = {
     DISCORD_TOKEN: 'Discord Bot Token',
     DISCORD_CLIENT_ID: 'Discord Client ID',
-    MONGO_URI: 'MongoDB connection URI',
 };
 
 EnvValidator.validate(REQUIRED_ENV_VARS);
@@ -28,7 +27,6 @@ const defaultConfig: FrameworkSettings = {
         clientId: process.env.DISCORD_CLIENT_ID!,
     },
     defaultPrefix: process.env.BOT_PREFIX || "z-",
-    mongoQueryString: process.env.MONGO_URI!,
     logLevel: parseInt(process.env.LOGLEVEL || "3"),
 };
 

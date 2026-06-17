@@ -38,6 +38,7 @@ import { ErrorType } from './definitions/ErrorType.js';
 import { Db } from 'mongodb';
 import { MongoService } from './services/MongoService.js';
 import { registerDefaultExecutionRules } from './modules/core/baseModule/defaultRules.js';
+import { DatabaseManager, DatabaseConfig } from 'zumito-db';
 
 // import better-logging
 
@@ -111,15 +112,21 @@ export class ZumitoFramework {
     /**
      * The MongoDB service instance.
      * @type {MongoService}
-     * @private
+     * @deprecated Use `framework.db` (DatabaseManager from zumito-db) instead.
      */
     mongoService: MongoService;
     /**
      * The MongoDB database instance (shortcut).
      * @type {Db}
-     * @private
+     * @deprecated Use `framework.db.getRepository(Model).find(...)` instead.
      */
     database: Db;
+
+    /**
+     * The new zumito-db DatabaseManager instance.
+     * @type {DatabaseManager}
+     */
+    db: DatabaseManager;
     
     /**
      * The ExpressJS app instance.
@@ -206,6 +213,10 @@ export class ZumitoFramework {
         
         await this.registerModules();
         registerDefaultExecutionRules();
+
+        // Ensure all model schemas (from config + module auto-load) are created
+        await this.db.ensureSchemas();
+
         await this.refreshSlashCommands();
         this.startApiServer();
         if (this.settings.statusOptions) {
@@ -219,21 +230,57 @@ export class ZumitoFramework {
 
     private async initializeDatabase() {
         const mongoUri = this.settings?.mongoQueryString || process.env.MONGO_URI;
-        if (!mongoUri) {
-            console.error('[🗄️🔴] MongoDB connection string not provided.');
+        const dbSettings = this.settings.database;
+
+        let config: DatabaseConfig;
+
+        if (dbSettings?.default) {
+            config = {
+                default: dbSettings.default,
+                drivers: dbSettings.drivers || {},
+            };
+        } else if (mongoUri) {
+            const match = mongoUri.match(/\/([^/?]+)(\?|$)/);
+            const dbName = match ? match[1] : 'zumito';
+            config = {
+                default: 'mongo',
+                drivers: { mongo: { uri: mongoUri, database: dbName } },
+            };
+        } else {
+            console.error('[🗄️🔴] No database configured.');
+            console.error('  Set database.default in zumito.config.ts (memory, tingo, mongo, sqlite)');
+            console.error('  or set MONGO_URI / mongoQueryString for MongoDB.');
             process.exit(1);
         }
-        // Extract dbName from URI or fallback
-        const match = mongoUri.match(/\/([^/?]+)(\?|$)/);
-        const dbName = match ? match[1] : 'zumito';
-        this.mongoService = new MongoService(mongoUri, dbName);
+
+        if (this.settings.models) {
+            config.models = this.settings.models;
+        }
+
+        this.db = new DatabaseManager();
+
         try {
-            await this.mongoService.connect();
-            this.database = this.mongoService.db;
-            console.log('[🗄️🟢] MongoDB connection successful!');
-        } catch (err) {
-            console.error('[🗄️🔴] MongoDB connection error:', err.message);
+            await this.db.connect(config);
+            ServiceContainer.addService(DatabaseManager, [], true, this.db);
+            console.log(`[🗄️🟢] Database connected (driver: ${config.default})`);
+        } catch (err: any) {
+            console.error(`[🗄️🔴] Database connection error: ${err.message}`);
             process.exit(1);
+        }
+
+        // Backward compat: only set up mongoService for mongo driver
+        if (config.default === 'mongo' && mongoUri) {
+            const driver = this.db.getDriver();
+            this.database = (driver as any).raw;
+            const dbName = (config.drivers.mongo as any)?.database || 'zumito';
+            this.mongoService = new MongoService(mongoUri, dbName);
+            this.mongoService.db = this.database;
+            this.mongoService.client = (driver as any).client;
+        }
+
+        // Apply migrations if configured
+        if (this.settings.database?.migrations && this.settings.database.migrations.length > 0) {
+            await this.db.migrator.latest(this.settings.database.migrations);
         }
     }
 
