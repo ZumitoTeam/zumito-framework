@@ -358,7 +358,6 @@ export class ZumitoFramework {
     }
 
     private async registerBundle(bundlePath, bundleOptions: ModuleParameters) {
-        console.debug(bundlePath);
         const bundle = await this.modules.loadModuleFile(bundlePath);
         const bundleName = path.basename(bundlePath);
         await this.modules.instanceModule(bundle, bundlePath, bundleName, bundleOptions);
