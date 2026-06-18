@@ -13,6 +13,8 @@ type BaseErrorOptions = {
 type CommandErrorOptions = BaseErrorOptions & {
     type: ErrorType.CommandInstance | ErrorType.CommandLoad | ErrorType.CommandRun,
     command: Command,
+    interaction?: any,
+    message?: any,
 }
 
 type ApiErrorOptions = BaseErrorOptions & {

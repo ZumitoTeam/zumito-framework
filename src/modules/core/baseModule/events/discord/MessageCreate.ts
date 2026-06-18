@@ -131,6 +131,7 @@ export class MessageCreate extends FrameworkEvent {
                     errorHandler.handleError(error, {
                         command: commandInstance,
                         type: ErrorType.CommandRun,
+                        message,
                     })
                     message.reply({
                         content: "An error ocurred while running this command.",
@@ -152,6 +153,7 @@ export class MessageCreate extends FrameworkEvent {
                 errorHandler.handleError(error, {
                     command: commandInstance,
                     type: ErrorType.CommandRun,
+                    message,
                 })
                 message.reply({
                     content: "An error ocurred while running this command.",

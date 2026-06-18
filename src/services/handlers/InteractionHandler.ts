@@ -138,6 +138,7 @@ export class InteractionHandler {
                     this.errorHandler.handleError(error, {
                         command: commandInstance,
                         type: ErrorType.CommandRun,
+                        interaction,
                     })
                     interaction.reply({
                         content: "An error ocurred while running this command.",
@@ -148,6 +149,7 @@ export class InteractionHandler {
                 this.errorHandler.handleError(error, {
                     command: commandInstance,
                     type: ErrorType.CommandRun,
+                    interaction,
                 });
                 interaction.reply({
                     content: "An error ocurred while running this command.",
