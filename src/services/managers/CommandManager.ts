@@ -91,6 +91,7 @@ export class CommandManager {
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
             if (file.endsWith('.d.ts')) continue;
+            if (file.endsWith('.ts') && files.includes(file.replace(/\.ts$/, '.js'))) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 const command = await this.loadCommandFile(path.join(folderPath, file), true);
                 if (command) {

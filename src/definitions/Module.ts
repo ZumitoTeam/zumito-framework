@@ -92,6 +92,7 @@ export abstract class Module {
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
             if (file.endsWith('.d.ts')) continue;
+            if (file.endsWith('.ts') && files.includes(file.replace(/\.ts$/, '.js'))) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 let event = await import(
                     'file://' + path.join(folderPath, file)
@@ -167,6 +168,7 @@ export abstract class Module {
         const files = fs.readdirSync(modelsFolder);
         for (const file of files) {
             if (file.endsWith('.d.ts')) continue;
+            if (file.endsWith('.ts') && files.includes(file.replace(/\.ts$/, '.js'))) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 const mod = await import(
                     'file://' + path.join(modelsFolder, file)
@@ -202,6 +204,7 @@ export abstract class Module {
         const files = fs.readdirSync(folderPath);
         for (const file of files) {
             if (file.endsWith('.d.ts')) continue;
+            if (file.endsWith('.ts') && files.includes(file.replace(/\.ts$/, '.js'))) continue;
             if (file.endsWith('.js') || file.endsWith('.ts')) {
                 let route = await import(
                     'file://' + path.join(folderPath, file)
