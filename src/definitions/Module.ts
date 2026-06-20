@@ -21,11 +21,23 @@ export type ModuleRequeriments = {
     custom: Array<() => Promise<boolean>>;
 };
 
+export type ModuleDeclaration = {
+    moduleClass: typeof Module;
+    name: string;
+    rootPath: string;
+    options?: ModuleParameters;
+    requiredDeps: string[];
+    optionalDeps: string[];
+};
+
 export abstract class Module {
     protected path: string;
     protected parameters: ModuleParameters;
     protected framework: ZumitoFramework;
     protected events: Map<string, FrameworkEvent> = new Map();
+    static moduleName?: string;
+    static dependencies?: readonly string[];
+    static optionalDependencies?: readonly string[];
     static requeriments: ModuleRequeriments;
     
     protected errorHandler: ErrorHandler;

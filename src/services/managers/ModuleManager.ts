@@ -1,5 +1,5 @@
 import { ZumitoFramework } from "../../ZumitoFramework.js";
-import { Module } from "../../definitions/Module.js";
+import { Module, ModuleDeclaration } from "../../definitions/Module.js";
 import fs from 'fs';
 import path from 'path';
 import { ErrorHandler } from "../handlers/ErrorHandler.js";
@@ -38,7 +38,151 @@ export class ModuleManager {
         return this.modules.size;
     }
 
-    async loadModuleFile(folderPath: string) {
+    resolveModuleName(moduleClass: typeof Module, fallbackName: string): string {
+        return moduleClass.moduleName || fallbackName;
+    }
+
+    resolveModuleDeps(moduleClass: typeof Module): { required: string[]; optional: string[] } {
+        const required = new Set<string>();
+        const optional = new Set<string>();
+
+        if (moduleClass.dependencies) {
+            for (const d of moduleClass.dependencies) required.add(d);
+        }
+        if (moduleClass.optionalDependencies) {
+            for (const d of moduleClass.optionalDependencies) optional.add(d);
+        }
+        if (moduleClass.requeriments?.modules) {
+            for (const m of moduleClass.requeriments.modules) required.add(m);
+        }
+
+        return { required: [...required], optional: [...optional] };
+    }
+
+    buildDependencyGraph(declarations: ModuleDeclaration[]): Map<string, string[]> {
+        const nameSet = new Set(declarations.map((d) => d.name));
+        const graph = new Map<string, string[]>();
+
+        for (const decl of declarations) {
+            const deps: string[] = [...decl.requiredDeps];
+            for (const opt of decl.optionalDeps) {
+                if (nameSet.has(opt)) deps.push(opt);
+            }
+
+            for (const dep of deps) {
+                if (!nameSet.has(dep)) {
+                    throw new Error(
+                        `Module "${decl.name}" depends on "${dep}" which was not found`,
+                    );
+                }
+            }
+
+            graph.set(decl.name, deps);
+        }
+
+        return graph;
+    }
+
+    topologicalSort(declarations: ModuleDeclaration[]): ModuleDeclaration[] {
+        const graph = this.buildDependencyGraph(declarations);
+
+        const inDegree = new Map<string, number>();
+        const adjacency = new Map<string, string[]>();
+
+        for (const decl of declarations) {
+            const name = decl.name;
+            if (!inDegree.has(name)) inDegree.set(name, 0);
+            if (!adjacency.has(name)) adjacency.set(name, []);
+        }
+
+        for (const [name, deps] of graph) {
+            for (const dep of deps) {
+                if (!adjacency.has(dep)) adjacency.set(dep, []);
+                adjacency.get(dep)!.push(name);
+                inDegree.set(name, (inDegree.get(name) || 0) + 1);
+            }
+        }
+
+        const queue: string[] = [];
+        for (const [name, degree] of inDegree) {
+            if (degree === 0) queue.push(name);
+        }
+
+        const sorted: string[] = [];
+        while (queue.length > 0) {
+            const current = queue.shift()!;
+            sorted.push(current);
+            for (const neighbor of adjacency.get(current) || []) {
+                const newDegree = inDegree.get(neighbor)! - 1;
+                inDegree.set(neighbor, newDegree);
+                if (newDegree === 0) queue.push(neighbor);
+            }
+        }
+
+        if (sorted.length < declarations.length) {
+            const unresolved = declarations
+                .filter((d) => !sorted.includes(d.name))
+                .map((d) => d.name);
+            throw new Error(
+                `Circular dependency detected involving: ${unresolved.join(', ')}`,
+            );
+        }
+
+        const nameMap = new Map(declarations.map((d) => [d.name, d]));
+        return sorted.map((name) => nameMap.get(name)!);
+    }
+
+    async resolveAndInstantiateAll(
+        modulePaths: Array<{ rootPath: string; options?: ModuleParameters; name?: string }>,
+    ): Promise<void> {
+        const declarations: ModuleDeclaration[] = [];
+
+        for (const entry of modulePaths) {
+            const moduleClass = await this.loadModuleFile(entry.rootPath);
+            if (!moduleClass || moduleClass === Module) continue;
+
+            const { required, optional } = this.resolveModuleDeps(moduleClass);
+            const name = this.resolveModuleName(
+                moduleClass,
+                entry.name || path.basename(entry.rootPath),
+            );
+
+            declarations.push({
+                moduleClass,
+                name,
+                rootPath: entry.rootPath,
+                options: entry.options,
+                requiredDeps: required,
+                optionalDeps: optional,
+            });
+        }
+
+        if (declarations.length === 0) return;
+
+        let sorted: ModuleDeclaration[];
+        try {
+            sorted = this.topologicalSort(declarations);
+        } catch (err) {
+            console.error(`[📦❌] ${(err as Error).message}`);
+            return;
+        }
+
+        for (const decl of sorted) {
+            const result = await this.instanceModule(
+                decl.moduleClass,
+                decl.rootPath,
+                decl.name,
+                decl.options,
+            );
+            if (result instanceof Module) {
+                console.log(`[📦✅] Module "${decl.name}" loaded successfully`);
+            }
+        }
+
+        await this.initializePendingModules();
+    }
+
+    async loadModuleFile(folderPath: string): Promise<typeof Module | undefined> {
         let file: string;
         if (
             fs.existsSync(path.join(folderPath, 'index.js'))
@@ -58,7 +202,7 @@ export class ModuleManager {
             return Object.getPrototypeOf(candidate).name === 'Module';
         });
 
-        return moduleClass || exports[0];
+        return (moduleClass || exports[0]) as typeof Module | undefined;
     }
 
     registerModule(module: InstanceType<typeof Module>) {

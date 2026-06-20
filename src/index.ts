@@ -18,7 +18,7 @@ import { DatabaseConfigLoader } from './services/utilities/DatabaseConfigLoader.
 import { EmojiFallback } from './services/EmojiFallback.js';
 import { FrameworkEvent } from './definitions/FrameworkEvent.js';
 import { FrameworkSettings } from './definitions/FrameworkSettings.js';
-import { Module } from './definitions/Module.js';
+import { Module, ModuleDeclaration, ModuleRequeriments } from './definitions/Module.js';
 import { SelectMenuParameters } from './definitions/parameters/SelectMenuParameters.js';
 import { TextFormatter } from './services/utilities/TextFormatter.js';
 import { Translation } from './definitions/Translation.js';
@@ -75,6 +75,8 @@ export {
     FrameworkSettings,
     Command,
     Module,
+    ModuleDeclaration,
+    ModuleRequeriments,
     CommandParameters,
     CommandArguments,
     FrameworkEvent,

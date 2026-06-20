@@ -373,27 +373,45 @@ export class ZumitoFramework {
         }
 
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+        const moduleEntries: Array<{ rootPath: string; options?: any; name?: string }> = [];
+
         if (this.settings.bundles && this.settings.bundles.length > 0) {
             for (const bundle of this.settings.bundles) {
-                await this.registerBundle(bundle.path, bundle.options);
+                moduleEntries.push({
+                    rootPath: bundle.path,
+                    options: bundle.options,
+                });
             }
         }
-        await this.registerModule(path.join(__dirname, 'modules', 'core'), 'baseModule');
+        moduleEntries.push({
+            rootPath: path.join(__dirname, 'modules', 'core'),
+            name: 'baseModule',
+        });
         if (fs.existsSync(`${process.cwd()}/node_modules/.zumitoBundles`)) {
             const files = fs.readdirSync(`${process.cwd()}/node_modules/.zumitoBundles`);
             for (const file of files) {
-                await this.registerModule(`${process.cwd()}/node_modules/.zumitoBundles`, file);
+                moduleEntries.push({
+                    rootPath: path.join(process.cwd(), 'node_modules', '.zumitoBundles', file),
+                    name: file,
+                });
             }
         }
         if (modulesFolder) {
             const files = fs.readdirSync(modulesFolder);
             for (const file of files) {
-                await this.registerModule(modulesFolder, file);
+                moduleEntries.push({
+                    rootPath: path.join(modulesFolder, file),
+                    name: file,
+                });
             }
         } else if (this.settings.srcMode == 'monoBundle') {
-            await this.registerModule(process.cwd(), 'src')
+            moduleEntries.push({
+                rootPath: path.join(process.cwd(), 'src'),
+                name: 'src',
+            });
         }
 
+        await this.modules.resolveAndInstantiateAll(moduleEntries);
     }
 
     private async registerModule(modulesFolder, moduleName, module?: any) {
