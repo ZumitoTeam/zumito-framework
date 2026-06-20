@@ -384,7 +384,7 @@ export class ZumitoFramework {
             }
         }
         moduleEntries.push({
-            rootPath: path.join(__dirname, 'modules', 'core'),
+            rootPath: path.join(__dirname, 'modules', 'core', 'baseModule'),
             name: 'baseModule',
         });
         if (fs.existsSync(`${process.cwd()}/node_modules/.zumitoBundles`)) {
