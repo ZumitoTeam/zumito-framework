@@ -128,7 +128,9 @@ export abstract class Module {
             client: this.framework.client,
         };
         args.forEach((arg) => {
-            finalArgs[arg.constructor.name.toLowerCase()] = arg;
+            if (arg && arg.constructor) {
+                finalArgs[arg.constructor.name.toLowerCase()] = arg;
+            }
         });
         const interaction = args.find(
             (arg: any) =>
