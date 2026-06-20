@@ -105,6 +105,7 @@ export class MessageCreate extends FrameworkEvent {
                     });
                 }
 
+                const startTime = Date.now();
                 await commandInstance.execute({
                     message,
                     args: parsedArgs,
@@ -126,7 +127,22 @@ export class MessageCreate extends FrameworkEvent {
                             );
                         }
                     },
+                }).then(() => {
+                    this.framework.eventEmitter.emit('commandExecuted', {
+                        guildId: message.guildId,
+                        commandName: commandInstance.name,
+                        type: 'prefix',
+                        executionTimeMs: Date.now() - startTime,
+                        success: true,
+                    });
                 }).catch((error) => {
+                    this.framework.eventEmitter.emit('commandExecuted', {
+                        guildId: message.guildId,
+                        commandName: commandInstance.name,
+                        type: 'prefix',
+                        executionTimeMs: Date.now() - startTime,
+                        success: false,
+                    });
                     const errorHandler = ServiceContainer.getService(ErrorHandler);
                     errorHandler.handleError(error, {
                         command: commandInstance,

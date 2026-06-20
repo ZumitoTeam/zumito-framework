@@ -121,41 +121,67 @@ export class InteractionHandler {
             'command.' + commandInstance.name,
             guildSettings?.lang
         );
+        const startTime = Date.now();
         if (
             commandInstance.type === CommandType.separated ||
             commandInstance.type === CommandType.slash
         ) {
-            await commandInstance.executeSlashCommand({
-                client: this.client, 
-                interaction, args, framework, guildSettings, trans,
-            });
-        } else {
             try {
-                await commandInstance.execute({
+                await commandInstance.executeSlashCommand({
                     client: this.client, 
                     interaction, args, framework, guildSettings, trans,
-                }).catch((error: Error) => {
-                    this.errorHandler.handleError(error, {
-                        command: commandInstance,
-                        type: ErrorType.CommandRun,
-                        interaction,
-                    })
-                    interaction.reply({
-                        content: "An error ocurred while running this command.",
-                        ephemeral: true
-                    })
+                });
+                framework.eventEmitter.emit('commandExecuted', {
+                    guildId: interaction.guildId,
+                    commandName: commandInstance.name,
+                    type: 'slash',
+                    executionTimeMs: Date.now() - startTime,
+                    success: true,
                 });
             } catch (error: any) {
+                framework.eventEmitter.emit('commandExecuted', {
+                    guildId: interaction.guildId,
+                    commandName: commandInstance.name,
+                    type: 'slash',
+                    executionTimeMs: Date.now() - startTime,
+                    success: false,
+                });
                 this.errorHandler.handleError(error, {
                     command: commandInstance,
                     type: ErrorType.CommandRun,
                     interaction,
                 });
+            }
+        } else {
+            await commandInstance.execute({
+                client: this.client, 
+                interaction, args, framework, guildSettings, trans,
+            }).then(() => {
+                framework.eventEmitter.emit('commandExecuted', {
+                    guildId: interaction.guildId,
+                    commandName: commandInstance.name,
+                    type: 'slash',
+                    executionTimeMs: Date.now() - startTime,
+                    success: true,
+                });
+            }).catch((error: Error) => {
+                framework.eventEmitter.emit('commandExecuted', {
+                    guildId: interaction.guildId,
+                    commandName: commandInstance.name,
+                    type: 'slash',
+                    executionTimeMs: Date.now() - startTime,
+                    success: false,
+                });
+                this.errorHandler.handleError(error, {
+                    command: commandInstance,
+                    type: ErrorType.CommandRun,
+                    interaction,
+                })
                 interaction.reply({
                     content: "An error ocurred while running this command.",
-                    ephemeral: true,
+                    ephemeral: true
                 })
-            }
+            });
         }
     }
 
