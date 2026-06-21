@@ -53,6 +53,7 @@ export class CommandManager {
         if (!filePath.endsWith('.js') && !filePath.endsWith('.ts')) {
             return;
         }
+        if (filePath.endsWith('.d.ts')) return;
 
         const counter = (this.importCounters.get(filePath) || 0) + 1;
         this.importCounters.set(filePath, counter);
