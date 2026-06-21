@@ -33,6 +33,7 @@ export type ModuleDeclaration = {
 export abstract class Module {
     protected path: string;
     protected parameters: ModuleParameters;
+    protected moduleConfig: Record<string, any>;
     protected framework: ZumitoFramework;
     protected events: Map<string, FrameworkEvent> = new Map();
     static moduleName?: string;
@@ -47,6 +48,7 @@ export abstract class Module {
         this.parameters = parameters;
         this.framework = ServiceContainer.getService(ZumitoFramework) as ZumitoFramework;
         this.errorHandler = ServiceContainer.getService(ErrorHandler); 
+        this.moduleConfig = parameters ?? {};
     }
 
     async initialize() {

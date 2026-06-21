@@ -4,7 +4,7 @@
         "target": "ESNext",
         "declaration": true,
         "outDir": "./dist",
-        "moduleResolution": "node",
+        "moduleResolution": "Bundler",
         "esModuleInterop": true,
         "skipLibCheck": true,
         "experimentalDecorators": true,

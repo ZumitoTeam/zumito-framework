@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as url from 'url';
+import { createRequire } from 'module';
 
 import {
     Client,
@@ -375,14 +376,40 @@ export class ZumitoFramework {
         const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
         const moduleEntries: Array<{ rootPath: string; options?: any; name?: string }> = [];
 
-        if (this.settings.bundles && this.settings.bundles.length > 0) {
-            for (const bundle of this.settings.bundles) {
-                moduleEntries.push({
-                    rootPath: bundle.path,
-                    options: bundle.options,
-                });
+        const require = createRequire(import.meta.url);
+
+        // New format: modules as array of package names or ModuleEntry objects
+        if (this.settings.modules) {
+            for (const entry of this.settings.modules) {
+                if (typeof entry === 'string') {
+                    const resolvedPath = require.resolve(entry, { paths: [process.cwd()] });
+                    moduleEntries.push({ rootPath: resolvedPath + '/..', name: entry });
+                } else {
+                    const resolvedPath = entry.path ?? require.resolve(entry.name, { paths: [process.cwd()] });
+                    moduleEntries.push({
+                        rootPath: resolvedPath + '/..',
+                        options: entry.config,
+                        name: entry.name,
+                    });
+                }
             }
         }
+
+        // Backwards compat: old bundles format
+        if (this.settings.bundles && this.settings.bundles.length > 0) {
+            for (const bundle of this.settings.bundles) {
+                if (typeof bundle === 'string') {
+                    const resolvedPath = require.resolve(bundle, { paths: [process.cwd()] });
+                    moduleEntries.push({ rootPath: resolvedPath + '/..', name: bundle });
+                } else {
+                    moduleEntries.push({
+                        rootPath: bundle.path,
+                        options: bundle.options,
+                    });
+                }
+            }
+        }
+
         moduleEntries.push({
             rootPath: path.join(__dirname, 'modules', 'core', 'baseModule'),
             name: 'baseModule',

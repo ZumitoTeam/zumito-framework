@@ -1,4 +1,4 @@
 /**
  * @deprecated
  */
-export { FrameworkSettings } from "./settings/FrameworkSettings";
+export { FrameworkSettings, ModuleEntry } from "./settings/FrameworkSettings";

@@ -53,6 +53,8 @@ export { ModalSubmitParameters } from './definitions/parameters/ModalSubmitParam
 export { CommandBinds } from './definitions/commands/CommandBinds.js'
 export { Injectable } from './definitions/decorators/Injectable.decorator.js'
 export { LauncherConfig } from './definitions/config/LauncherConfig.js'
+export { defineConfig } from './definitions/config/defineConfig.js'
+export type { ModuleEntry } from './definitions/settings/FrameworkSettings.js'
 export { ModuleParameters } from './definitions/parameters/ModuleParameters.js'
 
 ServiceContainer.addService(TextFormatter, []);

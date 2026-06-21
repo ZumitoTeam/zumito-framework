@@ -36,7 +36,12 @@ if (!fs.existsSync(configFilePath)) {
     process.exit(1);
 }
 import(pathToFileURL(configFilePath).href)
-    .then(({ config: userConfig }: { config: LauncherConfig }) => {
+    .then((mod: any) => {
+        const userConfig: LauncherConfig = mod.config ?? mod.default;
+        if (!userConfig) {
+            console.error(`Config file at ${configFilePath} must export 'config' (named) or 'default' (default export).`);
+            process.exit(1);
+        }
         const config: FrameworkSettings = RecursiveObjectMerger.merge(defaultConfig, userConfig);
         new ZumitoFramework(config, (bot: ZumitoFramework) => {
             BotReadyLogger.log(bot);
