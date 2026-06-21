@@ -73,6 +73,7 @@ export class CommandManager {
             }
             return command;
         } catch (error: any) {
+            console.error('[🆕🔴 ] Error instanciating command ' + chalk.blue(baseName) + ' from ' + filePath);
             this.errorHandler.handleError(error, {
                 type: ErrorType.CommandInstance,
                 command: command,
