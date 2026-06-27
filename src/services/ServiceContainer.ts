@@ -67,6 +67,19 @@ class ServiceContainerManager {
         return this.services.has(serviceName);
     }
 
+    getAllServiceEntries(): Array<{ name: string; dependencies: string[]; singleton: boolean; hasInstance: boolean }> {
+        const entries: Array<{ name: string; dependencies: string[]; singleton: boolean; hasInstance: boolean }> = [];
+        for (const [name, svc] of this.services) {
+            entries.push({
+                name,
+                dependencies: svc.dependencies,
+                singleton: svc.singleton,
+                hasInstance: svc.instance !== undefined,
+            });
+        }
+        return entries;
+    }
+
 }
 if (!global.ServiceContainer) global.ServiceContainer = new ServiceContainerManager();
 export const ServiceContainer: ServiceContainerManager = global.ServiceContainer;
