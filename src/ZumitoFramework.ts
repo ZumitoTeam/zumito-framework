@@ -40,6 +40,7 @@ import { Db } from 'mongodb';
 import { MongoService } from './services/MongoService.js';
 import { registerDefaultExecutionRules } from './modules/core/baseModule/defaultRules.js';
 import { DatabaseManager, DatabaseConfig } from 'zumito-db';
+import { registerFrameworkInspector, startInspectorFileWriter } from './utils/Inspector.js';
 
 // import better-logging
 
@@ -184,6 +185,8 @@ export class ZumitoFramework {
         ServiceContainer.addService(EventManager, [], true, this.eventManager);
         ServiceContainer.addService(SlashCommandRefresher, [], true, new SlashCommandRefresher(this));
 
+        registerFrameworkInspector(this);
+
         if (settings.logLevel) {
             console.logLevel = settings.logLevel;
         }
@@ -191,6 +194,7 @@ export class ZumitoFramework {
         this.initialize()
             .then(() => {
                 if (callback) callback(this);
+                startInspectorFileWriter(this);
             })
             .catch((err) => {
                 console.error(err, err.message, err.stack, err.name);
@@ -230,7 +234,7 @@ export class ZumitoFramework {
     }
 
     private async initializeDatabase() {
-        const mongoUri = this.settings?.mongoQueryString || process.env.MONGO_URI;
+        const mongoUri = this.settings?.mongoQueryString || process.env.DATABASE_URI;
         const dbSettings = this.settings.database;
 
         let config: DatabaseConfig;
@@ -250,7 +254,7 @@ export class ZumitoFramework {
         } else {
             console.error('[🗄️🔴] No database configured.');
             console.error('  Set database.default in zumito.config.ts (memory, tingo, mongo, sqlite)');
-            console.error('  or set MONGO_URI / mongoQueryString for MongoDB.');
+            console.error('  or set DATABASE_URI / mongoQueryString for MongoDB.');
             process.exit(1);
         }
 
